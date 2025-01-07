@@ -1,0 +1,134 @@
+---
+title: "Techniques de prod"
+author: "CORBARI Ugo SCHNEIDER Hugo"
+date: "2025-01-03"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Description du projet 
+
+
+
+
+
+```{r cars}
+### Packages, et chargement du site
+
+library(httr)
+library(stringr)
+library(xml2)
+library(stringr)
+library(tools)
+library(rvest)
+
+foot = GET('https://www.whatismybrowser.com/detect/what-is-my-user-agent/')
+str_match_all(content(foot, "text"), '<div class="value" id="detected_value">(.*?)</div>')[[1]][,2]
+
+user_agent = user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:132.0) Gecko/20100101 Firefox/132.0")
+foot = GET('https://www.whatismybrowser.com/detect/what-is-my-user-agent/', user_agent)
+str_match_all(content(foot, "text"), '<div class="value" id="detected_value">(.*?)</div>')[[1]][,2]
+
+urlpage = 'https://www.transfermarkt.fr/spielbericht/index/spielbericht/4402015'
+urlpage
+
+foot = GET(urlpage, user_agent)
+html = xml2::read_html(httr::content(foot, "text"))
+substr(as.character(html), 1, 2000)
+
+clean_html = str_replace_all(as.character(html),'[\\t\\r\\n\\f]','')
+
+
+```
+
+## Packages et site utilisé
+
+```{r}
+### Extractions des principalles données pour un match 
+
+page <- read_html(clean_html)
+
+# Compétition
+competition <- page %>% html_node(".direct-headline__header") %>% html_text(trim = TRUE)
+
+# Équipe à domicile
+team_home <- page %>% html_node(".sb-team.sb-heim .sb-vereinslink") %>% html_text(trim = TRUE)
+
+# Équipe à l'extérieur
+team_away <- page %>% html_node(".sb-team.sb-gast .sb-vereinslink") %>% html_text(trim = TRUE)
+
+# Résultat
+result <- page %>% html_node(".sb-endstand") %>% html_text(trim = TRUE)
+
+# Spectateurs
+spectators <- page %>% html_node(".sb-zusatzinfos strong") %>% html_text(trim = TRUE)
+
+# Date et heure
+date_time <- page %>% html_node(".sb-datum.hide-for-small") %>% html_text(trim = TRUE)
+
+# Arbitre
+referee <- page %>% html_node(".sb-zusatzinfos a") %>% html_text(trim = TRUE)
+
+# Résumé
+cat(sprintf("Compétition: %s\nMatch: %s %s %s\nSpectateurs: %s\nDate et heure: %s\nArbitre: %s\n",
+            competition, team_home, result, team_away, spectators, date_time, referee))
+
+```
+
+```{r}
+## Extraction des buteurs 
+
+# Extraire les scores
+scores <- page %>%
+  html_nodes(".sb-aktion-spielstand b") %>%
+  html_text(trim = TRUE)
+
+# Extraire les joueurs impliqués (buteurs et passeurs)
+players <- page %>%
+  html_nodes(".sb-aktion-aktion a.wichtig") %>%
+  html_text(trim = TRUE)
+
+
+# Extraire les équipes
+teams <- page %>%
+  html_nodes(".sb-aktion-wappen img") %>%
+  html_attr("title")
+
+# Extraire les détails des événements
+events <- page %>%
+  html_nodes(".sb-aktion-aktion") %>%
+  html_text(trim = TRUE)
+
+length(scores)  # Longueur des scores
+length(players) # Longueur des joueurs
+length(events)  # Longueur des événements
+length(teams)   # Longueur des équipes
+
+# Organiser les données dans un tableau
+match_events <- data.frame(
+  Score = scores,
+  Players = players,
+  Events = events,
+  Teams = rep(teams, length.out = length(scores)),
+  stringsAsFactors = FALSE
+)
+
+# Afficher les résultats
+print(match_events)
+
+
+# Exemple de nettoyage pour extraire les noms des buteurs et des passeurs
+match_events <- match_events %>%
+  mutate(
+    GoalScorer = ifelse(grepl("But de la saison", Events), Players, NA),
+    AssistProvider = ifelse(grepl("Passe décisive", Events), Players, NA)
+  )
+
+
+```
+
+## 
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
