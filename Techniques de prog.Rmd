@@ -1,6 +1,6 @@
 ---
-title: "Techniques de prod"
-author: "CORBARI Ugo SCHNEIDER Hugo"
+title: "Techniques de programmation"
+author: "CORBARI UGO SCHNEIDER HUGO"
 date: "2025-01-03"
 output: html_document
 ---
