@@ -11,7 +11,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Description du projet 
 
-
+  Pour ce projet rattaché à l'Unité d'Enseignement "Techniques de programmations" nous avons décider de mettre en place un code afin de réaliser des résumés de matchs de football dont les résultats sont présents sur le site Transfermarkt. Ce projet est fondé sur la partie webscrapping du cours, étant donné que ce fut la partie que nous avons le moins bien compris nous avons trouvé intéressant le fait d'approfondir ces techniques dans notre projet.
+Il s'agit dans un premier temps de récupérer les données du site transfermarkt pour un match. Après avoir obtennu un user agent et avoir néttoyé le fichier HTML nous extrayons les données liées aux équipes, aux scores, aux buteurs ...
 
 
 
