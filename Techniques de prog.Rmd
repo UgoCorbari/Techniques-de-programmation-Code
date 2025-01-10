@@ -81,6 +81,20 @@ cat(sprintf("Compétition: %s\nMatch: %s %s %s\nSpectateurs: %s\nDate et heure: 
 
 ```
 
+Le deuxième encadré permet d'accéder aux compositions des équipes, une information pertinente pour comprendre les matchs.
+
+```{r}
+### Compositions 
+
+
+
+
+```
+
+
+
+
+
 Le troisième encadré est tout aussi important puisqu'il retranscrit les données liées aux buts au cours du matchs; tels que le nom du buteur et du passeur, la minute à laquelle à eue lieux le but... qui sont peut-être les données les plus importantes pour nôtre résumé.
 
 ```{r}
