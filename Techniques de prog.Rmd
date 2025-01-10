@@ -13,7 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
   Pour ce projet rattaché à l'Unité d'Enseignement "Techniques de programmations" nous avons décider de mettre en place un code afin de réaliser des résumés de matchs de football dont les résultats sont présents sur le site Transfermarkt. Ce projet est fondé sur la partie webscrapping du cours, étant donné que ce fut la partie que nous avons le moins bien compris nous avons trouvé intéressant le fait d'approfondir ces techniques dans notre projet.
 Il s'agit dans un premier temps de récupérer les données du site transfermarkt pour un match. Après avoir obtennu un user agent et avoir néttoyé le fichier HTML nous extrayons les données liées aux équipes, aux scores, aux buteurs ...
-
+Une fois ces données obtennus pour un match nous mettrons en place des formules afin de résumer les principaux évènements de ce match, puis nous appliqueront ces formuls pour que notre programme soit capable de produire un résumé pour n'importe quel matchs de football.
 
 
 ```{r cars}
@@ -45,10 +45,12 @@ clean_html = str_replace_all(as.character(html),'[\\t\\r\\n\\f]','')
 
 ```
 
-## Packages et site utilisé
+## Extractions des données pour un match 
+
+  Le site présente tous les matchs de la même manière, sur la page correspondant aux résultats du match il y a plusieurs encadrés. Dans un premier temps nous nous concentrerons sur le premier encadré qui fait apparaitre la compétition dans laquelle se déroule le match, les équipes, les scores, le résultat et d'autres données essentielles pour le résumé que nous voulons mettre en place. 
 
 ```{r}
-### Extractions des principalles données pour un match 
+### Extractions des principalles données de l'encadrée 1 
 
 page <- read_html(clean_html)
 
@@ -78,6 +80,8 @@ cat(sprintf("Compétition: %s\nMatch: %s %s %s\nSpectateurs: %s\nDate et heure: 
             competition, team_home, result, team_away, spectators, date_time, referee))
 
 ```
+
+Le troisième encadré est tout aussi important puisqu'il retranscrit les données liées aux buts au cours du matchs; tels que le nom du buteur et du passeur, la minute à laquelle à eue lieux le but... qui sont peut-être les données les plus importantes pour nôtre résumé.
 
 ```{r}
 ## Extraction des buteurs 
