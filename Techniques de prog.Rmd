@@ -11,7 +11,10 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Description du projet
 
-  Pour ce projet rattaché à l'Unité d'Enseignement "Techniques de programmations" nous avons décider de mettre en place un code afin de réaliser des résumés de matchs de football dont les résultats sont présents sur le site Transfermarkt. Ce projet est fondé sur la partie webscrapping du cours, étant donné que ce fut la partie que nous avons le moins bien compris nous avons trouvé intéressant le fait d'approfondir ces techniques dans notre projet. Il s'agit dans un premier temps de récupérer les données du site transfermarkt pour un match. Après avoir obtennu un user agent et avoir néttoyé le fichier HTML nous extrayons les données liées aux équipes, aux scores, aux buteurs ... Une fois ces données obtennus pour un match nous mettrons en place des formules afin de résumer les principaux évènements de ce match, puis nous appliqueront ces formuls pour que notre programme soit capable de produire un résumé pour n'importe quel matchs de football.
+  Pour ce projet lié à l'Unité d'Enseignement "Techniques de programmation", nous avons décidé de développer un programme capable de générer des résumés de matchs de football en se basant sur les résultats disponibles sur le site "Transfermarkt". Ce projet s'inscrit dans le cadre de l'apprentissage des techniques de web scraping, une thématique du cours que nous avons trouvée particulièrement intéressante mais assez complexe, doù le fait que nous avons souhaité approfondir cette thématique. 
+  L'objectif principal est de récupérer les données d'un match spécifique depuis le site "Transfermarkt". Pour ce faire, nous commençons par configurer un user agent et nettoyer le fichier HTML extrait. Ensuite, nous extrayons des informations telles que les équipes, les scores, les buteurs, et d'autres événements clés du match. Une fois ces données collectées, nous mettons en place des formules permettant de structurer et résumer les principaux événements du match.
+  Enfin, nous veillons à automatiser ce processus afin que notre programme puisse produire un résumé détaillé pour n'importe quel match de football disponible sur la plateforme. Ce projet nous a permis de consolider notre compréhension des techniques de web scraping tout en appliquant les concepts appris à travers le cours de manière concrète.
+
 
 ```{r, echo=FALSE, results='hide'}
 ### Packages, et chargement du site
@@ -45,7 +48,7 @@ clean_html = str_replace_all(as.character(html),'[\\t\\r\\n\\f]','')
 
 ## Extractions des données pour un match
 
-Le site présente tous les matchs de la même manière, sur la page correspondant aux résultats du match il y a plusieurs encadrés. Dans un premier temps nous nous concentrerons sur le premier encadré qui fait apparaitre la compétition dans laquelle se déroule le match, les équipes, les scores, le résultat et d'autres données essentielles pour le résumé que nous voulons mettre en place.
+Le site "Transfermarkt" présente tous les matchs selon une structure homogène. Chaque page dédiée aux résultats d'un match est organisée en plusieurs encadrés. Dans un premier temps, notre travail se concentre sur le premier encadré. Cet encadré contient des informations clés telles que la compétition dans laquelle se déroule le match, les équipes impliquées, les scores, le résultat final, ainsi que d'autres données essentielles à la création du résumé que nous souhaitons mettre en place.
 
 ```{r}
 ### Extractions des principalles données de l'encadrée 1 
@@ -105,8 +108,8 @@ extraire.joueurs <- function(page, section_xpath) {
 }
 
 # Extraire les données pour chaque équipe
-Home.data <- extraire.joueurs(page, section_Home)
-Away.data <- extraire.joueurs(page, section_Away)
+Home.data <- extraire.joueurs(page, section.Home)
+Away.data <- extraire.joueurs(page, section.Away)
 
 # Afficher les résultats
 print(Home.data)
