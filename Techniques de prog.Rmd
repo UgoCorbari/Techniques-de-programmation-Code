@@ -43,12 +43,11 @@ substr(as.character(html), 1, 2000)
 
 clean_html = str_replace_all(as.character(html),'[\\t\\r\\n\\f]','')
 
-
 ```
 
 ## Extractions des données pour un match
 
-Le site "Transfermarkt" présente tous les matchs selon une structure homogène. Chaque page dédiée aux résultats d'un match est organisée en plusieurs encadrés. Dans un premier temps, notre travail se concentre sur le premier encadré. Cet encadré contient des informations clés telles que la compétition dans laquelle se déroule le match, les équipes impliquées, les scores, le résultat final, ainsi que d'autres données essentielles à la création du résumé que nous souhaitons mettre en place.
+  Le site "Transfermarkt" présente tous les matchs selon une structure homogène. Chaque page dédiée aux résultats d'un match est organisée en plusieurs encadrés. Dans un premier temps, notre travail se concentre sur le premier encadré. Cet encadré contient des informations clés telles que la compétition dans laquelle se déroule le match, les équipes impliquées, les scores, le résultat final, ainsi que d'autres données essentielles à la création du résumé que nous souhaitons mettre en place.
 
 ```{r}
 ### Extractions des principalles données de l'encadrée 1 
@@ -82,7 +81,7 @@ cat(sprintf("Compétition: %s\nMatch: %s %s %s\nSpectateurs: %s\nDate et heure: 
 
 ```
 
-Le deuxième encadré permet d'accéder aux compositions des équipes, une information pertinente pour comprendre la physionomie des matchs.
+  Le deuxième encadré permet d'accéder aux compositions des équipes, une information pertinente pour comprendre la physionomie des matchs.
 
 ```{r}
 # Fonction pour extraire les joueurs ou manager par poste pour une équipe spécifique
@@ -118,7 +117,7 @@ print(Away.data)
 ```
 
 
-Le troisième encadré est tout aussi important puisqu'il retranscrit les données liées aux buts au cours du matchs; tels que le nom du buteur et du passeur, la minute à laquelle à eue lieux le but... qui sont peut-être les données les plus importantes pour nôtre résumé.
+ Le troisième encadré joue également un rôle crucial, car il détaille les données liées aux buts marqués pendant le match. Il fournit des informations telles que le nom du buteur, celui du passeur décisif, ainsi que la minute à laquelle chaque but a été inscrit. Ces données sont particulièrement pertinentes pour enrichir et personnaliser le résumé que nous souhaitons élaborer, en mettant en avant les moments clés du match.
 
 ```{r}
 ## Extraction des buteurs 
@@ -170,6 +169,49 @@ match_events <- match_events %>%
     AssistProvider = ifelse(grepl("Passe décisive", Events), Players, NA)
   )
 
+
+```
+
+Automatisation du processus 
+
+```{r}
+# Exemple d'utilisation pour un match
+url_match <- "https://www.transfermarkt.fr/spielbericht/index/spielbericht/4402013"
+match_data <- tryCatch(
+  extract_match_data(url_match),
+  error = function(e) {
+    cat("Erreur lors de l'extraction des données : ", e$message, "\n")
+    NULL
+  }
+)
+
+# Afficher un tableau propre avec les statistiques
+if (!is.null(match_data)) {
+  # Tableau des informations principales
+  summary_table <- data.frame(
+    Competition = match_data$Competition,
+    HomeTeam = match_data$HomeTeam,
+    AwayTeam = match_data$AwayTeam,
+    Result = match_data$Result,
+    Spectators = match_data$Spectators,
+    DateTime = match_data$DateTime,
+    Stadium = match_data$Stadium,
+    stringsAsFactors = FALSE
+  )
+  
+  # Afficher les statistiques principales
+  cat("\n=== Statistiques Principales ===\n")
+  print(summary_table)
+  
+  # Afficher le tableau des événements
+  cat("\n=== Événements du Match ===\n")
+  print(match_data$Events)
+  
+} else {
+  cat("Les données du match n'ont pas pu être extraites.\n")
+}
+
+View(summary_table)
 
 ```
 
