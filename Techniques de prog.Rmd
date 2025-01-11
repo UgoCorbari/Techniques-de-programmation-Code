@@ -172,11 +172,86 @@ match_events <- match_events %>%
 
 ```
 
-Automatisation du processus 
+  Automatisation du processus 
 
 ```{r}
+# Fonction d'extraction des données d'un match
+extract_match_data <- function(match_url) {
+  # Charger les librairies nécessaires
+  library(httr)
+  library(stringr)
+  library(xml2)
+  library(rvest)
+  library(dplyr)
+  
+  # Configurer le user-agent
+  user_agent <- user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:132.0) Gecko/20100101 Firefox/132.0")
+  
+  # Requête GET pour récupérer le contenu HTML
+  response <- GET(match_url, user_agent)
+  
+  # Vérifier si la requête a réussi
+  if (response$status_code != 200) {
+    stop("Erreur : La requête a échoué. Vérifiez l'URL ou la connexion réseau.")
+  }
+  
+  # Charger et nettoyer le contenu HTML
+  html <- read_html(content(response, "text"))
+  clean_html <- str_replace_all(as.character(html), '[\\t\\r\\n\\f]', '')
+  page <- read_html(clean_html)
+  
+  # Extraire les informations principales (encadré 1)
+  competition <- page %>% html_node(".direct-headline__header") %>% html_text(trim = TRUE)
+  home_team <- page %>% html_node(".sb-team.sb-heim .sb-vereinslink") %>% html_text(trim = TRUE)
+  away_team <- page %>% html_node(".sb-team.sb-gast .sb-vereinslink") %>% html_text(trim = TRUE)
+  result <- page %>% html_node(".sb-endstand") %>% html_text(trim = TRUE)
+  spectators <- page %>% html_node(".sb-zusatzinfos strong") %>% html_text(trim = TRUE)
+  date_time <- page %>% html_node(".sb-datum.hide-for-small") %>% html_text(trim = TRUE)
+  stadium <- page %>% html_node(".sb-zusatzinfos a") %>% html_text(trim = TRUE)
+  
+  # Extraire les événements du match (encadré 3)
+  scores <- page %>% html_nodes(".sb-aktion-spielstand b") %>% html_text(trim = TRUE)
+  players <- page %>% html_nodes(".sb-aktion-aktion a.wichtig") %>% html_text(trim = TRUE)
+  teams <- page %>% html_nodes(".sb-aktion-wappen img") %>% html_attr("title")
+  events <- page %>% html_nodes(".sb-aktion-aktion") %>% html_text(trim = TRUE)
+  
+  # Ajuster les vecteurs pour correspondre à la longueur maximale
+  max_length <- max(length(scores), length(players), length(events), length(teams))
+  scores <- c(scores, rep(NA, max_length - length(scores)))
+  players <- c(players, rep(NA, max_length - length(players)))
+  events <- c(events, rep(NA, max_length - length(events)))
+  teams <- c(teams, rep(NA, max_length - length(teams)))
+  
+  # Organiser les données des événements
+  match_events <- data.frame(
+    Score = scores,
+    Players = players,
+    Events = events,
+    Teams = teams,
+    stringsAsFactors = FALSE
+  ) %>%
+    mutate(
+      GoalScorer = ifelse(grepl("But de la saison", Events), Players, NA),
+      AssistProvider = ifelse(grepl("Passe décisive", Events), Players, NA)
+    )
+  
+  # Créer une liste avec les informations principales et les événements
+  match_summary <- list(
+    Competition = competition,
+    HomeTeam = home_team,
+    AwayTeam = away_team,
+    Result = result,
+    Spectators = spectators,
+    DateTime = date_time,
+    Stadium = stadium,
+    Events = match_events
+  )
+  
+  return(match_summary)
+}
+
 # Exemple d'utilisation pour un match
-url_match <- "https://www.transfermarkt.fr/spielbericht/index/spielbericht/4402013"
+url_match <- "https://www.transfermarkt.fr/spielbericht/index/spielbericht/4402015"
 match_data <- tryCatch(
   extract_match_data(url_match),
   error = function(e) {
@@ -211,7 +286,7 @@ if (!is.null(match_data)) {
   cat("Les données du match n'ont pas pu être extraites.\n")
 }
 
-View(summary_table)
+
 
 ```
 
