@@ -56,26 +56,21 @@ clean_html = str_replace_all(as.character(html),'[\\t\\r\\n\\f]','')
 
 page <- read_html(clean_html)
 
-# Compétition dans laquelle se déroule le match
-compet <- page %>% html_node(".direct-headline__header") %>% html_text(trim = TRUE)
+compet <- page %>% html_node(".direct-headline__header") %>%  html_text(trim = TRUE)            #Compétition
 
-# Équipe jouant à domicile
-T.home <- page %>% html_node(".sb-team.sb-heim .sb-vereinslink") %>% html_text(trim = TRUE)
+T.home <- page %>% html_node(".sb-team.sb-heim .sb-vereinslink") %>% html_text(trim = TRUE)     #Equipe Domicile
 
-# Équipe se déplacant à l'extérieur
-T.away <- page %>% html_node(".sb-team.sb-gast .sb-vereinslink") %>% html_text(trim = TRUE)
+T.away <- page %>% html_node(".sb-team.sb-gast .sb-vereinslink") %>% html_text(trim = TRUE)     #Equipe Exterieur
 
-# Résultat du match 
-result <- page %>% html_node(".sb-endstand") %>% html_text(trim = TRUE)
+result <- page %>% html_node(".sb-endstand") %>%html_text(trim = TRUE)                          # Résultat
+
 
 # Nombre de spectateurs présents au stade 
 spec <- page %>% html_node(".sb-zusatzinfos strong") %>% html_text(trim = TRUE)
 
-# Date et heure du match 
-date <- page %>% html_node(".sb-datum.hide-for-small") %>% html_text(trim = TRUE)
+date <- page %>% html_node(".sb-datum.hide-for-small") %>% html_text(trim = TRUE)               #Date du match
 
-# Nom du stade dans lequel se déroule le match
-Stade <- page %>% html_node(".sb-zusatzinfos a") %>% html_text(trim = TRUE)
+Stade <- page %>% html_node(".sb-zusatzinfos a") %>% html_text(trim = TRUE)                     #Nom du stade
 
 # Résumé de ces informations
 cat(sprintf("Compétition: %s\nMatch: %s %s %s\nSpectateurs: %s\nDate et heure: %s\nStade: %s\n",
@@ -123,57 +118,109 @@ print(Away.data)
  Le troisième encadré joue également un rôle crucial, car il détaille les données liées aux buts marqués pendant le match. Il fournit des informations telles que le nom du buteur, celui du passeur décisif, ainsi que la minute à laquelle chaque but a été inscrit. Ces données sont particulièrement pertinentes pour enrichir et personnaliser le résumé que nous souhaitons élaborer, en mettant en avant les moments clés du match.
 
 ```{r}
-## Extraction des buteurs 
+# Extraction de données de l'encadré 3 
 
-# Extraire les scores
-scores <- page %>%
-  html_nodes(".sb-aktion-spielstand b") %>%
-  html_text(trim = TRUE)
+but_details <- page %>%html_nodes(".sb-aktion-aktion") %>%html_text(trim = TRUE)              #Evenements liés aux buts
 
-# Extraire les joueurs impliqués (buteurs et passeurs)
-players <- page %>%
-  html_nodes(".sb-aktion-aktion a.wichtig") %>%
-  html_text(trim = TRUE)
+but_events <- grep("But de la saison", but_details, value = TRUE)                             #Filtrage des données 
 
+buteurs <- page %>%html_nodes(".sb-aktion-aktion a.wichtig") %>%html_text(trim = TRUE)        #Extraction de buteurs
 
-# Extraire les équipes
-teams <- page %>%
-  html_nodes(".sb-aktion-wappen img") %>%
-  html_attr("title")
+liste_buteurs <- c()                                                                   # Initialisation des listes pour les buteurs 
+liste_passeurs <- c()                                                                  # Initialisation des listes pour les passeurs
 
-# Extraire les détails des événements
-events <- page %>%
-  html_nodes(".sb-aktion-aktion") %>%
-  html_text(trim = TRUE)
-events
+# Fonction d'extraction des statistiques
+for (event in but_events) {
+  buteur_match <- sub(",.*", "", event)                                               #On extrait le(s) buteur(s) et on les ajoutes 
+  liste_buteurs <- c(liste_buteurs, buteur_match)                                     #dans la liste vide 
+  
+  passeur_match <- ifelse(grepl("Passe décisive:", event),
+                          sub(".*Passe décisive: (.+?),.*", "\\1", event),            #Extraction des passeurs si identifiés 
+                          "Non spécifié")                                             #Si non, passeur non mentionné
+  liste_passeurs <- c(liste_passeurs, passeur_match)
+}
 
-length(scores)  # Longueur des scores
-length(players) # Longueur des joueurs
-length(events)  # Longueur des événements
-length(teams)   # Longueur des équipes
-
-# Organiser les données dans un tableau
-match_events <- data.frame(
-  Score = scores,
-  Players = players,
-  Events = events,
-  Teams = rep(teams, length.out = length(scores)),
+# On créer un data frame pour rassembler les informations
+statistiques_buts <- data.frame(
+  Buteur = liste_buteurs,
+  Passeur = liste_passeurs,
+  Details = but_events,
   stringsAsFactors = FALSE
 )
 
-# Afficher les résultats
-print(match_events)
-
-
-# Exemple de nettoyage pour extraire les noms des buteurs et des passeurs
-match_events <- match_events %>%
-  mutate(
-    GoalScorer = ifelse(grepl("But de la saison", Events), Players, NA),
-    AssistProvider = ifelse(grepl("Passe décisive", Events), Players, NA)
-  )
-
+print(statistiques_buts)
 
 ```
+
+  Une fois les données extraites il est possible de créer un résumé naratif du match 
+
+```{r}
+###### JE DOIS LE RETRAVAILLER C EST DU CHATGPT
+creer_resume_journalistique <- function(competition, stade, equipe_home, equipe_away, score, spectateurs, evenements) {
+  # Introduction
+  resume <- sprintf(
+    "Dans le cadre de la compétition %s, le match opposant %s et %s s'est déroulé au %s devant une foule de %s spectateurs. Le score final de cette rencontre intense a été de %s.\n\n", 
+    competition, equipe_home, equipe_away, stade, spectateurs, score
+  )
+  
+  # Décrire les événements
+  if (nrow(evenements) > 0) {
+    resume <- paste0(resume, "Voici les moments forts du match : ")
+    for (i in 1:nrow(evenements)) {
+      minute <- evenements$Minute[i]
+      buteur <- evenements$Buteur[i]
+      passeur <- evenements$Passeur[i]
+      
+      if (passeur != "Non spécifié") {
+        event_text <- sprintf(
+          "À la %s minute, %s a trouvé le chemin des filets grâce à une passe décisive de %s. ", 
+          minute, buteur, passeur
+        )
+      } else {
+        event_text <- sprintf("À la %s minute, %s a inscrit un magnifique but. ", minute, buteur)
+      }
+      
+      resume <- paste0(resume, event_text)
+    }
+  } else {
+    resume <- paste0(resume, "Aucun événement notable n'a été enregistré pendant ce match.")
+  }
+  
+  # Conclusion
+  resume <- paste0(resume, "\n\nCe match restera dans les mémoires pour ses moments forts et l'intensité du jeu.")
+  
+  # Retourner le résumé final
+  return(resume)
+}
+
+# Exemple de données extraites
+competition <- "Ligue 1"
+stade <- "Parc des Princes"
+equipe_home <- "Paris Saint-Germain"
+equipe_away <- "Olympique de Marseille"
+score <- "3-1"
+spectateurs <- "48,712"
+
+# Exemple de dataframe des événements
+evenements <- data.frame(
+  Minute = c("15", "45", "67", "89"),
+  Buteur = c("Mbappé", "Neymar", "Messi", "Ramos"),
+  Passeur = c("Hakimi", "Non spécifié", "Verratti", "Non spécifié"),
+  stringsAsFactors = FALSE
+)
+
+# Générer le résumé
+resume <- creer_resume_journalistique(competition, stade, equipe_home, equipe_away, score, spectateurs, evenements)
+
+# Afficher le résumé
+cat(resume)
+
+```
+
+
+
+
+
 
   Automatisation du processus 
 
@@ -289,9 +336,6 @@ if (!is.null(match_data)) {
 } else {
   cat("Les données du match n'ont pas pu être extraites.\n")
 }
-
-
-
 
 ```
 
