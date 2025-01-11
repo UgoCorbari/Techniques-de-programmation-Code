@@ -17,8 +17,9 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 ```{r, echo=FALSE, results='hide'}
-### Packages, et chargement du site
+### Importation des packages et configuration
 
+# Chargement des librairies nécessaires 
 library(httr)
 library(stringr)
 library(xml2)
@@ -27,6 +28,7 @@ library(tools)
 library(rvest)
 library(dplyr)
 
+# Configuration d'un User-Agent spécifique, définition de l'URL de la page cible et nettoyage de la page HTML
 foot = GET('https://www.whatismybrowser.com/detect/what-is-my-user-agent/')
 str_match_all(content(foot, "text"), '<div class="value" id="detected_value">(.*?)</div>')[[1]][,2]
 
@@ -50,7 +52,7 @@ clean_html = str_replace_all(as.character(html),'[\\t\\r\\n\\f]','')
   Le site "Transfermarkt" présente tous les matchs selon une structure homogène. Chaque page dédiée aux résultats d'un match est organisée en plusieurs encadrés. Dans un premier temps, notre travail se concentre sur le premier encadré. Cet encadré contient des informations clés telles que la compétition dans laquelle se déroule le match, les équipes impliquées, les scores, le résultat final, ainsi que d'autres données essentielles à la création du résumé que nous souhaitons mettre en place.
 
 ```{r}
-### Extractions des principalles données de l'encadrée 1 
+### Extractions des principalles données de l'encadré 1
 
 page <- read_html(clean_html)
 
@@ -66,7 +68,7 @@ T.away <- page %>% html_node(".sb-team.sb-gast .sb-vereinslink") %>% html_text(t
 # Résultat du match 
 result <- page %>% html_node(".sb-endstand") %>% html_text(trim = TRUE)
 
-# Nommbre de spectateurs présents au stade 
+# Nombre de spectateurs présents au stade 
 spec <- page %>% html_node(".sb-zusatzinfos strong") %>% html_text(trim = TRUE)
 
 # Date et heure du match 
@@ -84,11 +86,12 @@ cat(sprintf("Compétition: %s\nMatch: %s %s %s\nSpectateurs: %s\nDate et heure: 
   Le deuxième encadré permet d'accéder aux compositions des équipes, une information pertinente pour comprendre la physionomie des matchs.
 
 ```{r}
-# Fonction pour extraire les joueurs ou manager par poste pour une équipe spécifique
+# Fonction pour extraire les joueurs par poste et le manager pour une équipe spécifique
 
 # Sections des équipes
-section.Home <- "//div[contains(@class, 'aufstellung-box')]"
-section.Away <- "//div[contains(@class, 'aufstellung-bordertop-small')]"
+section.Home <- "//div[contains(@class, 'large-6') and contains(@class, 'aufstellung') and contains(@class, 'box')]"
+section.Away <- "//div[contains(@class, 'large-6') and not(contains(@class, 'aufstellung'))]"
+
 
 extraire.joueurs <- function(page, section_xpath) {
   section <- page %>% html_nodes(xpath = section_xpath)
@@ -175,6 +178,7 @@ match_events <- match_events %>%
   Automatisation du processus 
 
 ```{r}
+# Fonction d'extraction des données d'un match afin d'automatiser le processus
 # Fonction d'extraction des données d'un match
 extract_match_data <- function(match_url) {
   # Charger les librairies nécessaires
@@ -285,6 +289,7 @@ if (!is.null(match_data)) {
 } else {
   cat("Les données du match n'ont pas pu être extraites.\n")
 }
+
 
 
 
