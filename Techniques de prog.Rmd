@@ -112,6 +112,41 @@ Away.data <- extraire.joueurs(page, section.Away)
 print(Home.data)
 print(Away.data)
 
+# Fonction pour extraire le nombre de joueurs pour chaque poste
+Nb.joueurs.lignes <- function(poste) {
+  joueurs <- strsplit(poste, ",\\s*")[[1]]
+  return(length(joueurs))
+}
+
+# Appliquer la fonction pour obtenir le nombre de joueurs pour chaque poste pour Home et Away
+nombre_joueurs_home <- sapply(Home.data, Nb.joueurs.lignes)
+nombre_joueurs_away <- sapply(Away.data, Nb.joueurs.lignes)
+
+# Afficher les résultats
+print("Formation équipe domicile")
+print(nombre_joueurs_home)
+
+print("Formation équipe extérieur")
+print(nombre_joueurs_away)
+
+
+# Obtennir les formations
+formation_home <- paste(
+  nombre_joueurs_home["Défenseurs"], 
+  nombre_joueurs_home["Milieux de terrain"], 
+  nombre_joueurs_home["Attaquants"], sep = "-"
+)
+
+formation_away <- paste(
+  nombre_joueurs_away["Défenseurs"], 
+  nombre_joueurs_away["Milieux de terrain"], 
+  nombre_joueurs_away["Attaquants"], sep = "-"
+)
+
+cat("\nFormation équipe à domicile : ", formation_home, "\n")
+cat("Formation équipe à l'extérieur : ", formation_away, "\n")
+
+
 ```
 
 
@@ -155,15 +190,13 @@ print(statistiques_buts)
   Une fois les données extraites il est possible de créer un résumé naratif du match 
 
 ```{r}
-###### JE DOIS LE RETRAVAILLER C EST DU CHATGPT
-creer_resume_journalistique <- function(competition, stade, equipe_home, equipe_away, score, spectateurs, evenements) {
-  # Introduction
+#Création du résumé
+Resum.match<- function(competition, stade, T.away, T.home, score, spectateurs, evenements, formation_home, formation_away, Home.data) {
   resume <- sprintf(
-    "Dans le cadre de la compétition %s, le match opposant %s et %s s'est déroulé au %s devant une foule de %s spectateurs. Le score final de cette rencontre intense a été de %s.\n\n", 
-    competition, equipe_home, equipe_away, stade, spectateurs, score
+    "Dans le cadre de la compétition %s, le match opposant %s et %s s'est déroulé au %s devant une foule de %s spectateurs. Ce match s'est soldé sur le score de  %s.L'équipe de %s s'est présenté en %s tandis que les hommes de %s étaient disposés en %s. \n\n", 
+    compet, T.home, T.away, stade, spec, result, T.home, formation_home, Home.data$Manager, formation_away
   )
   
-  # Décrire les événements
   if (nrow(evenements) > 0) {
     resume <- paste0(resume, "Voici les moments forts du match : ")
     for (i in 1:nrow(evenements)) {
