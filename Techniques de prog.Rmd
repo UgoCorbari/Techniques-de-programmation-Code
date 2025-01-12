@@ -13,12 +13,11 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Pour ce projet lié à l'Unité d'Enseignement "Techniques de programmation", nous avons décidé de développer un programme capable de générer des résumés de matchs de football en se basant sur les résultats disponibles sur le site "Transfermarkt".
 
-Ce projet s'inscrit dans le cadre de l'apprentissage des techniques de web scraping, une thématique du cours que nous avons trouvée particulièrement intéressante mais assez complexe, doù le fait que nous avons souhaité approfondir cette thématique. 
+Ce projet s'inscrit dans le cadre de l'apprentissage des techniques de web scraping, une thématique du cours que nous avons trouvée particulièrement intéressante mais assez complexe, doù le fait que nous avons souhaité approfondir cette thématique.
 
 L'objectif principal est ainsi de récupérer les données d'un match spécifique depuis le site "Transfermarkt". Pour ce faire, nous commençons par configurer un user agent et nettoyer le fichier HTML extrait. Ensuite, nous extrayons des informations telles que les équipes, les scores, les buteurs, et d'autres événements clés du match. Une fois ces données collectées, nous mettons en place des formules permettant de structurer et résumer les principaux événements du match.
 
 Enfin, nous veillons à automatiser ce processus afin que notre programme puisse produire un résumé détaillé pour n'importe quel match de football disponible sur la plateforme. Ce projet nous a permis de consolider notre compréhension des techniques de web scraping tout en appliquant les concepts appris à travers le cours de manière concrète.
-
 
 ```{r, echo=FALSE, results='hide'}
 ### Importation des packages et configuration
@@ -51,9 +50,9 @@ clean_html = str_replace_all(as.character(html),'[\\t\\r\\n\\f]','')
 
 ```
 
-## Extractions des données pour un match
+## 1 Extractions des données pour un match
 
-  Le site "Transfermarkt" présente tous les matchs selon une structure homogène. Chaque page dédiée aux résultats d'un match est organisée en plusieurs encadrés. Dans un premier temps, notre travail se concentre sur le premier encadré. Cet encadré contient des informations clés telles que la compétition dans laquelle se déroule le match, les équipes impliquées, les scores, le résultat final, ainsi que d'autres données essentielles à la création du résumé que nous souhaitons mettre en place.
+Le site "Transfermarkt" présente tous les matchs selon une structure homogène. Chaque page dédiée aux résultats d'un match est organisée en plusieurs encadrés. Dans un premier temps, notre travail se concentre sur le premier encadré. Cet encadré contient des informations clés telles que la compétition dans laquelle se déroule le match, les équipes impliquées, les scores, le résultat final, ainsi que d'autres données essentielles à la création du résumé que nous souhaitons mettre en place.
 
 ```{r}
 ### Extractions des principales données de l'encadré 1
@@ -80,8 +79,8 @@ cat(sprintf("Compétition: %s\nMatch: %s %s %s\nSpectateurs: %s\nDate et heure: 
 
 ```
 
- Nous remarquons que, sous ce premier encadré, le site présente une frise chronologique des événements dans laquelle apparaissent les minutes auxquelles ont lieu les buts, une information qui nous sera essentielle pour le résumé du match.
- 
+Nous remarquons que, sous ce premier encadré, le site présente une frise chronologique des événements dans laquelle apparaissent les minutes auxquelles ont lieu les buts, une information qui nous sera essentielle pour le résumé du match.
+
 ```{r}
 # Extraire les minutes en fonction de leurs positions dans la frise
 # La frise présente tous les évènements du match, tels que les changements, les buts ou encore les cartons. On se concentre dans notre cas sur les buts 
@@ -104,7 +103,7 @@ print(but_minutes)
 
 ```
 
-  Le deuxième encadré permet d'accéder aux compositions des équipes, une information pertinente pour comprendre la physionomie des matchs.
+Le deuxième encadré permet d'accéder aux compositions des équipes, une information pertinente pour comprendre la physionomie des matchs.
 
 ```{r}
 # Fonction pour extraire les joueurs par poste et le manager pour une équipe spécifique
@@ -175,8 +174,7 @@ cat("Formation équipe à l'extérieur : ", formation_away, "\n")
 
 ```
 
-
- Le troisième encadré joue également un rôle crucial car il détaille les données liées aux buts marqués pendant le match. Il fournit des informations telles que le nom du buteur, celui du passeur décisif, ainsi que la minute à laquelle chaque but a été inscrit. Ces données sont particulièrement pertinentes pour enrichir et personnaliser le résumé que nous souhaitons élaborer, en mettant nottamment en avant les moments clés du match.
+Le troisième encadré joue également un rôle crucial car il détaille les données liées aux buts marqués pendant le match. Il fournit des informations telles que le nom du buteur, celui du passeur décisif, ainsi que la minute à laquelle chaque but a été inscrit. Ces données sont particulièrement pertinentes pour enrichir et personnaliser le résumé que nous souhaitons élaborer, en mettant nottamment en avant les moments clés du match.
 
 ```{r}
 # Extraction de données de l'encadré 3 
@@ -223,7 +221,9 @@ print(statistiques_buts)
 
 ```
 
-  Une fois les données extraites il est possible de créer un résumé naratif du match 
+## 2 Création d'un résumé à partir des données collèctées 
+
+Une fois les données extraites il est possible de créer un résumé naratif du match:
 
 ```{r}
 #Création du résumé narratif du match
@@ -231,7 +231,7 @@ print(statistiques_buts)
 Resum.match <- function(compet, Stade, T.away, T.home, result, spec, but_events, formation_home, formation_away, Away.data, liste_buteurs,liste_passeurs,liste_clubs,liste_minutes,clubs,clubs.but) {
   resume = paste(
     "Dans le cadre de la compétition", compet, ", le match opposant", T.home, "à", T.away,
-    "s'est déroulé à", Stade, ", devant une foule de", spectateurs, "spectateurs. Ce match s'est soldé sur le score de", result, ".",
+    "s'est déroulé à", Stade, ", devant une foule de", spec, "spectateurs. Ce match s'est soldé sur le score de", result, ".",
     "L'équipe de", T.home, "s'est présentée en", formation_home
   )
   if (formation_home == formation_away) {
@@ -262,15 +262,38 @@ Resum.match <- function(compet, Stade, T.away, T.home, result, spec, but_events,
     resume <- paste0(resume, " Au cours des 90 minutes, les deux équipes ont donné le meilleur d'elles-mêmes, mais aucune d'elles n'a su se départager. Ce match se solde sur un score nul qui n'arrange personne.")
   }
   resume <- paste0(resume, "\n\nCe match restera dans les mémoires pour ses moments forts et l'intensité du jeu.")
-  print(resume)
   return(resume)
 }
 
 
+resume <- Resum.match(
+  compet = compet,
+  Stade = Stade,
+  T.away = T.away,
+  T.home = T.home,
+  result = result,
+  spec = spec,
+  but_events = but_events,
+  formation_home = formation_home,
+  formation_away = formation_away,
+  Away.data = Away.data,
+  liste_buteurs = liste_buteurs,
+  liste_passeurs = liste_passeurs,
+  liste_clubs = liste_clubs,
+  liste_minutes = liste_minutes,
+  clubs = clubs.but,
+  clubs.but = clubs.but
+)
+
+cat(resume)
+
 
 ```
 
-  Automatisation du processus 
+
+## 3 Fonction finale
+
+Automatisation du processus
 
 ```{r}
 # Fonction finale pour automatiser le traitement d'une liste de matchs
@@ -350,6 +373,3 @@ lapply(results, function(match) print(match$Summary))
 
 ```
 
-## 
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
