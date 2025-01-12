@@ -391,7 +391,7 @@ concrète.</p>
 ##     intersect, setdiff, setequal, union</code></pre>
 </div>
 <div id="extractions-des-données-pour-un-match" class="section level2">
-<h2>Extractions des données pour un match</h2>
+<h2>1 Extractions des données pour un match</h2>
 <p>Le site “Transfermarkt” présente tous les matchs selon une structure
 homogène. Chaque page dédiée aux résultats d’un match est organisée en
 plusieurs encadrés. Dans un premier temps, notre travail se concentre
@@ -607,14 +607,17 @@ print(statistiques_buts)</code></pre>
 ##                                                                                                                                                         Details
 ## left: 25.555555555556%; Abdelhak Belahmeur, 5. But de la saison                                    Passe décisive: Edgar Delbos, 2. Passe décisive de la saison
 ## left: 67.777777777778%;                                                                                             Lucas Schnepp, Penalty, 4. But de la saison</code></pre>
+</div>
+<div id="création-dun-résumé-à-partir-des-données-collèctées" class="section level2">
+<h2>2 Création d’un résumé à partir des données collèctées</h2>
 <p>Une fois les données extraites il est possible de créer un résumé
-naratif du match</p>
+naratif du match:</p>
 <pre class="r"><code>#Création du résumé narratif du match
 
 Resum.match &lt;- function(compet, Stade, T.away, T.home, result, spec, but_events, formation_home, formation_away, Away.data, liste_buteurs,liste_passeurs,liste_clubs,liste_minutes,clubs,clubs.but) {
   resume = paste(
     &quot;Dans le cadre de la compétition&quot;, compet, &quot;, le match opposant&quot;, T.home, &quot;à&quot;, T.away,
-    &quot;s&#39;est déroulé à&quot;, Stade, &quot;, devant une foule de&quot;, spectateurs, &quot;spectateurs. Ce match s&#39;est soldé sur le score de&quot;, result, &quot;.&quot;,
+    &quot;s&#39;est déroulé à&quot;, Stade, &quot;, devant une foule de&quot;, spec, &quot;spectateurs. Ce match s&#39;est soldé sur le score de&quot;, result, &quot;.&quot;,
     &quot;L&#39;équipe de&quot;, T.home, &quot;s&#39;est présentée en&quot;, formation_home
   )
   if (formation_home == formation_away) {
@@ -645,9 +648,36 @@ Resum.match &lt;- function(compet, Stade, T.away, T.home, result, spec, but_even
     resume &lt;- paste0(resume, &quot; Au cours des 90 minutes, les deux équipes ont donné le meilleur d&#39;elles-mêmes, mais aucune d&#39;elles n&#39;a su se départager. Ce match se solde sur un score nul qui n&#39;arrange personne.&quot;)
   }
   resume &lt;- paste0(resume, &quot;\n\nCe match restera dans les mémoires pour ses moments forts et l&#39;intensité du jeu.&quot;)
-  print(resume)
   return(resume)
-}</code></pre>
+}
+
+
+resume &lt;- Resum.match(
+  compet = compet,
+  Stade = Stade,
+  T.away = T.away,
+  T.home = T.home,
+  result = result,
+  spec = spec,
+  but_events = but_events,
+  formation_home = formation_home,
+  formation_away = formation_away,
+  Away.data = Away.data,
+  liste_buteurs = liste_buteurs,
+  liste_passeurs = liste_passeurs,
+  liste_clubs = liste_clubs,
+  liste_minutes = liste_minutes,
+  clubs = clubs.but,
+  clubs.but = clubs.but
+)
+
+cat(resume)</code></pre>
+<pre><code>## Dans le cadre de la compétition Championnat National 3 - Groupe H , le match opposant SR Colmar à ASM Belfort s&#39;est déroulé à Colmar Stadium , devant une foule de 314 spect. spectateurs. Ce match s&#39;est soldé sur le score de 1:1(1:0) . L&#39;équipe de SR Colmar s&#39;est présentée en 4-3-3 , tandis que les hommes de Alexandre Demougeot étaient disposés en 4-4-2 . Voici les moments forts du match : À la minute 23 SR Colmar a trouvé le chemin des filets avec un but signé Abdelhak Belahmeur grâce à une passe décisive de Edgar Delbos .À la minute 61 , c&#39;est Lucas Schnepp qui a inscrit un magnifique but.
+## 
+## Ce match restera dans les mémoires pour ses moments forts et l&#39;intensité du jeu.</code></pre>
+</div>
+<div id="fonction-finale" class="section level2">
+<h2>3 Fonction finale</h2>
 <p>Automatisation du processus</p>
 <pre class="r"><code># Fonction finale pour automatiser le traitement d&#39;une liste de matchs
 process_matches &lt;- function(url_list, save_path = NULL) {
@@ -711,30 +741,23 @@ process_matches &lt;- function(url_list, save_path = NULL) {
   return(all_matches)
 }
 
-# Liste des URLs
-url_matches &lt;- c(
-  &quot;https://www.transfermarkt.fr/spielbericht/index/spielbericht/4402018&quot;,
-  &quot;https://www.transfermarkt.fr/spielbericht/index/spielbericht/4402016&quot;
-)
+# Liste des URLs de matchs
+url_matche &lt;- c(
+  &quot;https://www.transfermarkt.fr/spielbericht/index/spielbericht/4402015&quot;)
 
 # Appel de la fonction
-results &lt;- process_matches(url_matches, save_path = &quot;match_results.rds&quot;)
+results &lt;- process_matches(url_matche, save_path = &quot;match_results.rds&quot;)
 
-# Afficher les résumés
-lapply(results, function(match) print(match$Summary))</code></pre>
-<pre><code>## [1] &quot;Dans le cadre de la compétition Championnat National 3 - Groupe H , le match opposant FCO Strasbourg Koenigshoffen 06 et Racing Besançon s&#39;est déroulé à Stade Charles Frey devant 80 spect. spectateurs. Le score final est de 2:1(1:0) .&quot;
-## [1] &quot;Dans le cadre de la compétition Championnat National 3 - Groupe H , le match opposant ES Thaon et US Raon-l&#39;Étape s&#39;est déroulé à Stade Robert Sayer devant 401 spect. spectateurs. Le score final est de 3:2(2:1) .&quot;</code></pre>
-<pre><code>## [[1]]
-## [1] &quot;Dans le cadre de la compétition Championnat National 3 - Groupe H , le match opposant FCO Strasbourg Koenigshoffen 06 et Racing Besançon s&#39;est déroulé à Stade Charles Frey devant 80 spect. spectateurs. Le score final est de 2:1(1:0) .&quot;
-## 
-## [[2]]
-## [1] &quot;Dans le cadre de la compétition Championnat National 3 - Groupe H , le match opposant ES Thaon et US Raon-l&#39;Étape s&#39;est déroulé à Stade Robert Sayer devant 401 spect. spectateurs. Le score final est de 3:2(2:1) .&quot;</code></pre>
-</div>
-<div id="section" class="section level2">
-<h2></h2>
-<p>Note that the <code>echo = FALSE</code> parameter was added to the
-code chunk to prevent printing of the R code that generated the
-plot.</p>
+# Affichage résumé
+cat(&quot;\n=== Résumé des matchs ===\n&quot;)</code></pre>
+<pre><code>## 
+## === Résumé des matchs ===</code></pre>
+<pre class="r"><code>for (match in results) {
+  if (!is.null(match)) {
+    cat(match$Summary, &quot;\n&quot;)
+  }
+}</code></pre>
+<pre><code>## Dans le cadre de la compétition Championnat National 3 - Groupe H , le match opposant SR Colmar et ASM Belfort s&#39;est déroulé à Colmar Stadium devant 314 spect. spectateurs. Le score final est de 1:1(1:0) .</code></pre>
 </div>
 
 

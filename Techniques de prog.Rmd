@@ -358,17 +358,20 @@ process_matches <- function(url_list, save_path = NULL) {
   return(all_matches)
 }
 
-# Liste des URLs
-url_matches <- c(
-  "https://www.transfermarkt.fr/spielbericht/index/spielbericht/4402018",
-  "https://www.transfermarkt.fr/spielbericht/index/spielbericht/4402016"
-)
+# Liste des URLs de matchs
+url_matche <- c(
+  "https://www.transfermarkt.fr/spielbericht/index/spielbericht/4402015")
 
 # Appel de la fonction
-results <- process_matches(url_matches, save_path = "match_results.rds")
+results <- process_matches(url_matche, save_path = "match_results.rds")
 
-# Afficher les résumés
-lapply(results, function(match) print(match$Summary))
+# Affichage résumé
+cat("\n=== Résumé des matchs ===\n")
+for (match in results) {
+  if (!is.null(match)) {
+    cat(match$Summary, "\n")
+  }
+}
 
 ```
 
