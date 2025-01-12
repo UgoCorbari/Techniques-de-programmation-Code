@@ -296,13 +296,14 @@ cat(resume)
 1)    Fonction de récupération/nettoyage de la page HTML
 
 ```{r}
-<<<<<<< HEAD
+
 get_page = function(urlpage, user_agent) {
   res = GET(urlpage, user_agent)
   html = read_html(content(res, "text"))
   clean_html = str_replace_all(as.character(html), '[\\t\\r\\n\\f]', '')
   return(clean_html)
-=======
+}
+
 # Fonction finale pour automatiser le traitement d'une liste de matchs
 process_matches <- function(url_list, save_path = NULL) {
   # Charger les librairies nécessaires
@@ -363,11 +364,10 @@ process_matches <- function(url_list, save_path = NULL) {
   }
   
   return(all_matches)
->>>>>>> 4f33b02a9351f3367686eb8eeeffa411ce83cbd8
+
 }
 ```
 
-<<<<<<< HEAD
 2)    Fonction d'extraction des principales données
 
 ```{r}
@@ -438,7 +438,7 @@ extraire_buteurs = function(page, but_minutes) {
     liste_minutes <- c(liste_minutes, but_minutes[i])
     liste_clubs <- c(liste_clubs, clubs.but[i])
   }
-  
+}  
   statistics_buts <- data.frame(
     Clubs = liste_clubs,
     Minutes = liste_minutes,
@@ -448,7 +448,7 @@ extraire_buteurs = function(page, but_minutes) {
     stringsAsFactors = FALSE
   )
   return(statistics_buts)
-=======
+
 # Liste des URLs de matchs
 url_matche <- c(
   "https://www.transfermarkt.fr/spielbericht/index/spielbericht/4402015")
@@ -462,7 +462,6 @@ for (match in results) {
   if (!is.null(match)) {
     cat(match$Summary, "\n")
   }
->>>>>>> 4f33b02a9351f3367686eb8eeeffa411ce83cbd8
 }
 
 ```
@@ -482,7 +481,7 @@ Generation_de_resumes = function(urlpage, user_agent) {
   formation_away = "4-3-3"  # Exemple, à remplacer par l'extraction réelle des formations
   Away_data = list(Manager = "John Doe")  # Exemple, à remplacer par l'extraction réelle du manager
   
-  resume = Resum.match(details, but_stats, formation_home, formation_away, Away_data)
+  resume = Generation_de_resumes(details, but_stats, formation_home, formation_away, Away_data)
   return(resume)
 }
 
