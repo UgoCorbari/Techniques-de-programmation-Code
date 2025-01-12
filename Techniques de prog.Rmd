@@ -370,6 +370,5 @@ results <- process_matches(url_matches, save_path = "match_results.rds")
 # Afficher les résumés
 lapply(results, function(match) print(match$Summary))
 
-
 ```
 
