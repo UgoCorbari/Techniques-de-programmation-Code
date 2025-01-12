@@ -1,7 +1,7 @@
 ---
 title: "Techniques de programmation"
 author: "CORBARI UGO SCHNEIDER HUGO"
-date: "2025-01-03"
+date: "2025-01-14"
 output: html_document
 ---
 
@@ -11,9 +11,13 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Description du projet
 
-  Pour ce projet lié à l'Unité d'Enseignement "Techniques de programmation", nous avons décidé de développer un programme capable de générer des résumés de matchs de football en se basant sur les résultats disponibles sur le site "Transfermarkt". Ce projet s'inscrit dans le cadre de l'apprentissage des techniques de web scraping, une thématique du cours que nous avons trouvée particulièrement intéressante mais assez complexe, doù le fait que nous avons souhaité approfondir cette thématique. 
-  L'objectif principal est de récupérer les données d'un match spécifique depuis le site "Transfermarkt". Pour ce faire, nous commençons par configurer un user agent et nettoyer le fichier HTML extrait. Ensuite, nous extrayons des informations telles que les équipes, les scores, les buteurs, et d'autres événements clés du match. Une fois ces données collectées, nous mettons en place des formules permettant de structurer et résumer les principaux événements du match.
-  Enfin, nous veillons à automatiser ce processus afin que notre programme puisse produire un résumé détaillé pour n'importe quel match de football disponible sur la plateforme. Ce projet nous a permis de consolider notre compréhension des techniques de web scraping tout en appliquant les concepts appris à travers le cours de manière concrète.
+Pour ce projet lié à l'Unité d'Enseignement "Techniques de programmation", nous avons décidé de développer un programme capable de générer des résumés de matchs de football en se basant sur les résultats disponibles sur le site "Transfermarkt".
+
+Ce projet s'inscrit dans le cadre de l'apprentissage des techniques de web scraping, une thématique du cours que nous avons trouvée particulièrement intéressante mais assez complexe, doù le fait que nous avons souhaité approfondir cette thématique. 
+
+L'objectif principal est ainsi de récupérer les données d'un match spécifique depuis le site "Transfermarkt". Pour ce faire, nous commençons par configurer un user agent et nettoyer le fichier HTML extrait. Ensuite, nous extrayons des informations telles que les équipes, les scores, les buteurs, et d'autres événements clés du match. Une fois ces données collectées, nous mettons en place des formules permettant de structurer et résumer les principaux événements du match.
+
+Enfin, nous veillons à automatiser ce processus afin que notre programme puisse produire un résumé détaillé pour n'importe quel match de football disponible sur la plateforme. Ce projet nous a permis de consolider notre compréhension des techniques de web scraping tout en appliquant les concepts appris à travers le cours de manière concrète.
 
 
 ```{r, echo=FALSE, results='hide'}
@@ -52,25 +56,23 @@ clean_html = str_replace_all(as.character(html),'[\\t\\r\\n\\f]','')
   Le site "Transfermarkt" présente tous les matchs selon une structure homogène. Chaque page dédiée aux résultats d'un match est organisée en plusieurs encadrés. Dans un premier temps, notre travail se concentre sur le premier encadré. Cet encadré contient des informations clés telles que la compétition dans laquelle se déroule le match, les équipes impliquées, les scores, le résultat final, ainsi que d'autres données essentielles à la création du résumé que nous souhaitons mettre en place.
 
 ```{r}
-### Extractions des principalles données de l'encadré 1
+### Extractions des principales données de l'encadré 1
 
 page <- read_html(clean_html)
 
-compet <- page %>% html_node(".direct-headline__header") %>%  html_text(trim = TRUE)            #Compétition
+compet <- page %>% html_node(".direct-headline__header") %>%  html_text(trim = TRUE)            # Compétition
 
-T.home <- page %>% html_node(".sb-team.sb-heim .sb-vereinslink") %>% html_text(trim = TRUE)     #Equipe Domicile
+T.home <- page %>% html_node(".sb-team.sb-heim .sb-vereinslink") %>% html_text(trim = TRUE)     # Equipe Domicile
 
-T.away <- page %>% html_node(".sb-team.sb-gast .sb-vereinslink") %>% html_text(trim = TRUE)     #Equipe Exterieur
+T.away <- page %>% html_node(".sb-team.sb-gast .sb-vereinslink") %>% html_text(trim = TRUE)     # Equipe Exterieur
 
 result <- page %>% html_node(".sb-endstand") %>%html_text(trim = TRUE)                          # Résultat
 
+spec <- page %>% html_node(".sb-zusatzinfos strong") %>% html_text(trim = TRUE)                 # Spectateurs
 
-# Nombre de spectateurs présents au stade 
-spec <- page %>% html_node(".sb-zusatzinfos strong") %>% html_text(trim = TRUE)
+date <- page %>% html_node(".sb-datum.hide-for-small") %>% html_text(trim = TRUE)               # Date du match
 
-date <- page %>% html_node(".sb-datum.hide-for-small") %>% html_text(trim = TRUE)               #Date du match
-
-Stade <- page %>% html_node(".sb-zusatzinfos a") %>% html_text(trim = TRUE)                     #Nom du stade
+Stade <- page %>% html_node(".sb-zusatzinfos a") %>% html_text(trim = TRUE)                     # Nom du stade
 
 # Résumé de ces informations
 cat(sprintf("Compétition: %s\nMatch: %s %s %s\nSpectateurs: %s\nDate et heure: %s\nStade: %s\n",
@@ -79,10 +81,11 @@ cat(sprintf("Compétition: %s\nMatch: %s %s %s\nSpectateurs: %s\nDate et heure: 
 ```
 
  Nous remarquons que, sous ce premier encadré, le site présente une frise chronologique des événements dans laquelle apparaissent les minutes auxquelles ont lieu les buts, une information qui nous sera essentielle pour le résumé du match.
+ 
 ```{r}
 # Extraire les minutes en fonction de leurs positions dans la frise
-# La frise présente tous les évènements du match, changements, buts, cartons. Or dans notre cas seul les buts nous intéressent
-# Filtrer uniquement les événements de buts
+# La frise présente tous les évènements du match, tels que les changements, les buts ou encore les cartons. On se concentre dans notre cas sur les buts 
+# Objectif : Filtrer uniquement les événements de buts
 but_elements <- page %>%
   html_nodes(".sb-leiste-ereignis span.sb-sprite.sb-tor") %>% html_nodes(xpath = "..") %>%html_attr("style")                                          
 # Les éléments de la frise sont définis en fonction de leurs positions, on convertit alors la position en minutes
@@ -131,7 +134,7 @@ extraire.joueurs <- function(page, section_xpath) {
 Home.data <- extraire.joueurs(page, section.Home)
 Away.data <- extraire.joueurs(page, section.Away)
 
-# Afficher les résultats
+# Résultats
 print(Home.data)
 print(Away.data)
 
@@ -141,11 +144,11 @@ Nb.joueurs.lignes <- function(poste) {
   return(length(joueurs))
 }
 
-# Appliquer la fonction pour obtenir le nombre de joueurs pour chaque poste pour Home et Away
+# Fonction pour obtenir le nombre de joueurs pour chaque poste pour Home et Away
 nombre_joueurs_home <- sapply(Home.data, Nb.joueurs.lignes)
 nombre_joueurs_away <- sapply(Away.data, Nb.joueurs.lignes)
 
-# Afficher les résultats
+# Résultats
 print("Formation équipe domicile")
 print(nombre_joueurs_home)
 
@@ -173,18 +176,18 @@ cat("Formation équipe à l'extérieur : ", formation_away, "\n")
 ```
 
 
- Le troisième encadré joue également un rôle crucial, car il détaille les données liées aux buts marqués pendant le match. Il fournit des informations telles que le nom du buteur, celui du passeur décisif, ainsi que la minute à laquelle chaque but a été inscrit. Ces données sont particulièrement pertinentes pour enrichir et personnaliser le résumé que nous souhaitons élaborer, en mettant en avant les moments clés du match.
+ Le troisième encadré joue également un rôle crucial car il détaille les données liées aux buts marqués pendant le match. Il fournit des informations telles que le nom du buteur, celui du passeur décisif, ainsi que la minute à laquelle chaque but a été inscrit. Ces données sont particulièrement pertinentes pour enrichir et personnaliser le résumé que nous souhaitons élaborer, en mettant nottamment en avant les moments clés du match.
 
 ```{r}
 # Extraction de données de l'encadré 3 
 
-but_details <- page %>%html_nodes(".sb-aktion-aktion") %>%html_text(trim = TRUE)              #Evenements liés aux buts
+but_details <- page %>%html_nodes(".sb-aktion-aktion") %>%html_text(trim = TRUE)              # Evenements liés aux buts
 
-but_events <- grep("But de la saison", but_details, value = TRUE)                             #Filtrage des données 
+but_events <- grep("But de la saison", but_details, value = TRUE)                             # Filtrage des données 
 
-buteurs <- page %>%html_nodes(".sb-aktion-aktion a.wichtig") %>%html_text(trim = TRUE)        #Extraction de buteurs
+buteurs <- page %>%html_nodes(".sb-aktion-aktion a.wichtig") %>%html_text(trim = TRUE)        # Extraction des buteurs
 
-clubs.but <- page %>% html_nodes(".sb-aktion-wappen img") %>%html_attr("alt")                 #Extraction du club du buteur        
+clubs.but <- page %>% html_nodes(".sb-aktion-wappen img") %>%html_attr("alt")                 # Extraction du club du buteur        
 
 #Extraction du club auquel appartient le buteur à partir du logo 
 
@@ -196,18 +199,17 @@ liste_clubs <- c()                                                              
 
 # Fonction d'extraction des statistiques
 for (i in seq_along(but_events)) {
-  buteur_match <- sub(",.*", "", but_events[i])                                        #On extrait le(s) buteur(s) et on les ajoutes 
-                                                                                      #dans la liste vide 
+  buteur_match <- sub(",.*", "", but_events[i])                                        
   passeur_match <- ifelse(grepl("Passe décisive:", but_events[i]),
-                          sub(".*Passe décisive: (.+?),.*", "\\1", but_events[i]),            #Extraction des passeurs si identifiés 
-                          "Non spécifié")                                                    #Si non, passeur non mentionné
+                          sub(".*Passe décisive: (.+?),.*", "\\1", but_events[i]),          
+                          "Non spécifié")                                                   
   liste_buteurs <- c(liste_buteurs, buteur_match) 
   liste_passeurs <- c(liste_passeurs, passeur_match)
   liste_minutes <- c(liste_minutes, but_minutes[i])
   liste_clubs <- c(liste_clubs,clubs.but[i])
 }
 
-# On créer un data frame pour rassembler les informations
+# Création d'un data frame pour rassembler les informations
 statistiques_buts <- data.frame(
   Clubs = liste_clubs,
   Minutes = liste_minutes,
@@ -224,7 +226,7 @@ print(statistiques_buts)
   Une fois les données extraites il est possible de créer un résumé naratif du match 
 
 ```{r}
-#Création du résumé du match
+#Création du résumé narratif du match
 
 Resum.match <- function(compet, Stade, T.away, T.home, result, spec, but_events, formation_home, formation_away, Away.data, liste_buteurs,liste_passeurs,liste_clubs,liste_minutes,clubs,clubs.but) {
   resume = paste(
@@ -268,15 +270,11 @@ Resum.match <- function(compet, Stade, T.away, T.home, result, spec, but_events,
 
 ```
 
-
-
-
-
-
   Automatisation du processus 
 
 ```{r}
 # Fonction d'extraction des données d'un match afin d'automatiser le processus
+
 # Fonction d'extraction des données d'un match
 extract_match_data <- function(match_url) {
   # Charger les librairies nécessaires
@@ -292,17 +290,17 @@ extract_match_data <- function(match_url) {
   # Requête GET pour récupérer le contenu HTML
   response <- GET(match_url, user_agent)
   
-  # Vérifier si la requête a réussi
+  # Vérification si la requête a réussi
   if (response$status_code != 200) {
     stop("Erreur : La requête a échoué. Vérifiez l'URL ou la connexion réseau.")
   }
   
-  # Charger et nettoyer le contenu HTML
+  # Chargement et nettoyage du contenu HTML
   html <- read_html(content(response, "text"))
   clean_html <- str_replace_all(as.character(html), '[\\t\\r\\n\\f]', '')
   page <- read_html(clean_html)
   
-  # Extraire les informations principales (encadré 1)
+  # Extraction des informations principales (encadré 1)
   competition <- page %>% html_node(".direct-headline__header") %>% html_text(trim = TRUE)
   home_team <- page %>% html_node(".sb-team.sb-heim .sb-vereinslink") %>% html_text(trim = TRUE)
   away_team <- page %>% html_node(".sb-team.sb-gast .sb-vereinslink") %>% html_text(trim = TRUE)
@@ -311,20 +309,20 @@ extract_match_data <- function(match_url) {
   date_time <- page %>% html_node(".sb-datum.hide-for-small") %>% html_text(trim = TRUE)
   stadium <- page %>% html_node(".sb-zusatzinfos a") %>% html_text(trim = TRUE)
   
-  # Extraire les événements du match (encadré 3)
+  # Extraction des événements du match (encadré 3)
   scores <- page %>% html_nodes(".sb-aktion-spielstand b") %>% html_text(trim = TRUE)
   players <- page %>% html_nodes(".sb-aktion-aktion a.wichtig") %>% html_text(trim = TRUE)
   teams <- page %>% html_nodes(".sb-aktion-wappen img") %>% html_attr("title")
   events <- page %>% html_nodes(".sb-aktion-aktion") %>% html_text(trim = TRUE)
   
-  # Ajuster les vecteurs pour correspondre à la longueur maximale
+  # Ajustement des vecteurs pour correspondre à la longueur maximale
   max_length <- max(length(scores), length(players), length(events), length(teams))
   scores <- c(scores, rep(NA, max_length - length(scores)))
   players <- c(players, rep(NA, max_length - length(players)))
   events <- c(events, rep(NA, max_length - length(events)))
   teams <- c(teams, rep(NA, max_length - length(teams)))
   
-  # Organiser les données des événements
+  # Organisation des données des évènements
   match_events <- data.frame(
     Score = scores,
     Players = players,
@@ -337,7 +335,7 @@ extract_match_data <- function(match_url) {
       AssistProvider = ifelse(grepl("Passe décisive", Events), Players, NA)
     )
   
-  # Créer une liste avec les informations principales et les événements
+  # Création d'une liste avec les informations principales et les événements
   match_summary <- list(
     Competition = competition,
     HomeTeam = home_team,
@@ -362,7 +360,7 @@ match_data <- tryCatch(
   }
 )
 
-# Afficher un tableau propre avec les statistiques
+# Affichage d'un tableau propre avec les statistiques
 if (!is.null(match_data)) {
   # Tableau des informations principales
   summary_table <- data.frame(
