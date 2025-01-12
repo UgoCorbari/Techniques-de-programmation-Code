@@ -291,15 +291,20 @@ cat(resume)
 ```
 
 
-## 3 Fonction finale
+## 3 Restructurer le code en ensembles de fonctions
 
-Automatisation du processus
+1)    Fonction de récupération/nettoyage de la page HTML
 
 ```{r}
-# Fonction d'extraction des données d'un match afin d'automatiser le processus
-
-# Fonction d'extraction des données d'un match
-extract_match_data <- function(match_url) {
+<<<<<<< HEAD
+get_page = function(urlpage, user_agent) {
+  res = GET(urlpage, user_agent)
+  html = read_html(content(res, "text"))
+  clean_html = str_replace_all(as.character(html), '[\\t\\r\\n\\f]', '')
+  return(clean_html)
+=======
+# Fonction finale pour automatiser le traitement d'une liste de matchs
+process_matches <- function(url_list, save_path = NULL) {
   # Charger les librairies nécessaires
   library(httr)
   library(stringr)
@@ -307,107 +312,188 @@ extract_match_data <- function(match_url) {
   library(rvest)
   library(dplyr)
   
-  # Configurer le user-agent
-  user_agent <- user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:132.0) Gecko/20100101 Firefox/132.0")
-  
-  # Requête GET pour récupérer le contenu HTML
-  response <- GET(match_url, user_agent)
-  
-  # Vérification si la requête a réussi
-  if (response$status_code != 200) {
-    stop("Erreur : La requête a échoué. Vérifiez l'URL ou la connexion réseau.")
-  }
-  
-  # Chargement et nettoyage du contenu HTML
-  html <- read_html(content(response, "text"))
-  clean_html <- str_replace_all(as.character(html), '[\\t\\r\\n\\f]', '')
-  page <- read_html(clean_html)
-  
-  # Extraction des informations principales (encadré 1)
-  competition <- page %>% html_node(".direct-headline__header") %>% html_text(trim = TRUE)
-  home_team <- page %>% html_node(".sb-team.sb-heim .sb-vereinslink") %>% html_text(trim = TRUE)
-  away_team <- page %>% html_node(".sb-team.sb-gast .sb-vereinslink") %>% html_text(trim = TRUE)
-  result <- page %>% html_node(".sb-endstand") %>% html_text(trim = TRUE)
-  spectators <- page %>% html_node(".sb-zusatzinfos strong") %>% html_text(trim = TRUE)
-  date_time <- page %>% html_node(".sb-datum.hide-for-small") %>% html_text(trim = TRUE)
-  stadium <- page %>% html_node(".sb-zusatzinfos a") %>% html_text(trim = TRUE)
-  
-  # Extraction des événements du match (encadré 3)
-  scores <- page %>% html_nodes(".sb-aktion-spielstand b") %>% html_text(trim = TRUE)
-  players <- page %>% html_nodes(".sb-aktion-aktion a.wichtig") %>% html_text(trim = TRUE)
-  teams <- page %>% html_nodes(".sb-aktion-wappen img") %>% html_attr("title")
-  events <- page %>% html_nodes(".sb-aktion-aktion") %>% html_text(trim = TRUE)
-  
-  # Ajustement des vecteurs pour correspondre à la longueur maximale
-  max_length <- max(length(scores), length(players), length(events), length(teams))
-  scores <- c(scores, rep(NA, max_length - length(scores)))
-  players <- c(players, rep(NA, max_length - length(players)))
-  events <- c(events, rep(NA, max_length - length(events)))
-  teams <- c(teams, rep(NA, max_length - length(teams)))
-  
-  # Organisation des données des évènements
-  match_events <- data.frame(
-    Score = scores,
-    Players = players,
-    Events = events,
-    Teams = teams,
-    stringsAsFactors = FALSE
-  ) %>%
-    mutate(
-      GoalScorer = ifelse(grepl("But de la saison", Events), Players, NA),
-      AssistProvider = ifelse(grepl("Passe décisive", Events), Players, NA)
+  # Fonction interne pour extraire les données d'un match
+  extract_match_summary <- function(match_url) {
+    # Configurer le user-agent
+    user_agent <- user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:132.0) Gecko/20100101 Firefox/132.0")
+    
+    # Requête GET pour récupérer le contenu HTML
+    response <- GET(match_url, user_agent)
+    if (response$status_code != 200) return(NULL)
+    
+    # Chargement et nettoyage du contenu HTML
+    html <- read_html(content(response, "text"))
+    clean_html <- str_replace_all(as.character(html), '[\\t\\r\\n\\f]', '')
+    page <- read_html(clean_html)
+    
+    # Extraction des informations principales
+    competition <- page %>% html_node(".direct-headline__header") %>% html_text(trim = TRUE)
+    home_team <- page %>% html_node(".sb-team.sb-heim .sb-vereinslink") %>% html_text(trim = TRUE)
+    away_team <- page %>% html_node(".sb-team.sb-gast .sb-vereinslink") %>% html_text(trim = TRUE)
+    result <- page %>% html_node(".sb-endstand") %>% html_text(trim = TRUE)
+    spectators <- page %>% html_node(".sb-zusatzinfos strong") %>% html_text(trim = TRUE)
+    stadium <- page %>% html_node(".sb-zusatzinfos a") %>% html_text(trim = TRUE)
+    
+    # Résumé narratif
+    summary <- paste(
+      "Dans le cadre de la compétition", competition, ", le match opposant",
+      home_team, "et", away_team, "s'est déroulé à", stadium, "devant", spectators, "spectateurs.",
+      "Le score final est de", result, "."
     )
-  
-  # Création d'une liste avec les informations principales et les événements
-  match_summary <- list(
-    Competition = competition,
-    HomeTeam = home_team,
-    AwayTeam = away_team,
-    Result = result,
-    Spectators = spectators,
-    DateTime = date_time,
-    Stadium = stadium,
-    Events = match_events
-  )
-  
-  return(match_summary)
-}
-
-# Exemple d'utilisation pour un match
-url_match <- "https://www.transfermarkt.fr/spielbericht/index/spielbericht/4402015"
-match_data <- tryCatch(
-  extract_match_data(url_match),
-  error = function(e) {
-    cat("Erreur lors de l'extraction des données : ", e$message, "\n")
-    NULL
+    
+    return(list(
+      Competition = competition,
+      HomeTeam = home_team,
+      AwayTeam = away_team,
+      Result = result,
+      Spectators = spectators,
+      Stadium = stadium,
+      Summary = summary
+    ))
   }
-)
+  
+  # Traitement de la liste d'URLs
+  all_matches <- lapply(url_list, function(url) {
+    tryCatch(extract_match_summary(url), error = function(e) NULL)
+  })
+  
+  # Sauvegarde des résultats si un chemin est fourni
+  if (!is.null(save_path)) {
+    saveRDS(all_matches, file = save_path)
+  }
+  
+  return(all_matches)
+>>>>>>> 4f33b02a9351f3367686eb8eeeffa411ce83cbd8
+}
+```
 
-# Affichage d'un tableau propre avec les statistiques
-if (!is.null(match_data)) {
-  # Tableau des informations principales
-  summary_table <- data.frame(
-    Competition = match_data$Competition,
-    HomeTeam = match_data$HomeTeam,
-    AwayTeam = match_data$AwayTeam,
-    Result = match_data$Result,
-    Spectators = match_data$Spectators,
-    DateTime = match_data$DateTime,
-    Stadium = match_data$Stadium,
+<<<<<<< HEAD
+2)    Fonction d'extraction des principales données
+
+```{r}
+extraire_details_match = function(page) {
+  compet <- page %>% html_node(".direct-headline__header") %>% html_text(trim = TRUE)
+  T.home <- page %>% html_node(".sb-team.sb-heim .sb-vereinslink") %>% html_text(trim = TRUE)
+  T.away <- page %>% html_node(".sb-team.sb-gast .sb-vereinslink") %>% html_text(trim = TRUE)
+  result <- page %>% html_node(".sb-endstand") %>% html_text(trim = TRUE)
+  spec <- page %>% html_node(".sb-zusatzinfos strong") %>% html_text(trim = TRUE)
+  date <- page %>% html_node(".sb-datum.hide-for-small") %>% html_text(trim = TRUE)
+  Stade <- page %>% html_node(".sb-zusatzinfos a") %>% html_text(trim = TRUE)
+  
+  details = list(
+    compet = compet, 
+    home_team = T.home, 
+    away_team = T.away, 
+    result = result, 
+    spectators = spec, 
+    match_date = date, 
+    stadium = Stade
+  )
+  return(details)
+}
+```
+
+3)    Fonction pour extraire les minutes des buts
+
+```{r}
+extraire_but_minutes = function(page) {
+  but_elements <- page %>% 
+    html_nodes(".sb-leiste-ereignis span.sb-sprite.sb-tor") %>% 
+    html_nodes(xpath = "..") %>% html_attr("style")
+  
+  extract_minutes <- function(style) {
+    if (grepl("left:", style)) {
+      percent <- as.numeric(sub(".*left: ([0-9.]+)%;.*", "\\1", style))
+      return(round((percent * 90) / 100, 0))
+    } else {
+      return(NA)
+    }
+  }
+  
+  but_minutes <- sapply(but_elements, extract_minutes)
+  return(but_minutes)
+}
+```
+
+4)    Fonction pour extraire les buteurs 
+
+```{r}
+extraire_buteurs = function(page, but_minutes) {
+  but_details <- page %>% html_nodes(".sb-aktion-aktion") %>% html_text(trim = TRUE)
+  buteurs <- page %>% html_nodes(".sb-aktion-aktion a.wichtig") %>% html_text(trim = TRUE)
+  clubs.but <- page %>% html_nodes(".sb-aktion-wappen img") %>% html_attr("alt")
+  
+  liste_buteurs <- c()
+  liste_passeurs <- c()
+  liste_minutes <- c()
+  liste_clubs <- c()
+  
+  for (i in seq_along(but_details)) {
+    buteur_match <- sub(",.*", "", but_details[i])
+    passeur_match <- ifelse(grepl("Passe décisive:", but_details[i]),
+                            sub(".*Passe décisive: (.+?),.*", "\\1", but_details[i]),
+                            "Non spécifié")
+    liste_buteurs <- c(liste_buteurs, buteur_match)
+    liste_passeurs <- c(liste_passeurs, passeur_match)
+    liste_minutes <- c(liste_minutes, but_minutes[i])
+    liste_clubs <- c(liste_clubs, clubs.but[i])
+  }
+  
+  statistics_buts <- data.frame(
+    Clubs = liste_clubs,
+    Minutes = liste_minutes,
+    Buteur = liste_buteurs,
+    Passeur = liste_passeurs,
+    Details = but_details,
     stringsAsFactors = FALSE
   )
-  
-  # Afficher les statistiques principales
-  cat("\n=== Statistiques Principales ===\n")
-  print(summary_table)
-  
-  # Afficher le tableau des événements
-  cat("\n=== Événements du Match ===\n")
-  print(match_data$Events)
-  
-} else {
-  cat("Les données du match n'ont pas pu être extraites.\n")
+  return(statistics_buts)
+=======
+# Liste des URLs de matchs
+url_matche <- c(
+  "https://www.transfermarkt.fr/spielbericht/index/spielbericht/4402015")
+
+# Appel de la fonction
+results <- process_matches(url_matche, save_path = "match_results.rds")
+
+# Affichage résumé
+cat("\n=== Résumé des matchs ===\n")
+for (match in results) {
+  if (!is.null(match)) {
+    cat(match$Summary, "\n")
+  }
+>>>>>>> 4f33b02a9351f3367686eb8eeeffa411ce83cbd8
 }
 
 ```
 
+5)    Fonction finale 
+
+```{r}
+Generation_de_resumes = function(urlpage, user_agent) {
+  clean_html = get_page(urlpage, user_agent)
+  page = read_html(clean_html)
+  
+  details = extraire_details_match(page)
+  but_minutes = extraire_but_minutes(page)
+  but_stats = extraire_buteurs(page, but_minutes)
+  
+  formation_home = "4-4-2"  # Exemple, à remplacer par l'extraction réelle des formations
+  formation_away = "4-3-3"  # Exemple, à remplacer par l'extraction réelle des formations
+  Away_data = list(Manager = "John Doe")  # Exemple, à remplacer par l'extraction réelle du manager
+  
+  resume = Resum.match(details, but_stats, formation_home, formation_away, Away_data)
+  return(resume)
+}
+
+```
+
+6)    Execution de la fonction
+
+```{r}
+user_agent = user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:132.0) Gecko/20100101 Firefox/132.0")
+urlpage = ""  # Remplacer par l'URL du match
+Fonction_Finale = Generation_de_resumes(urlpage, user_agent)
+cat(Fonction_Finale)
+
+```

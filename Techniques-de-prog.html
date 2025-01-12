@@ -391,7 +391,7 @@ concrète.</p>
 ##     intersect, setdiff, setequal, union</code></pre>
 </div>
 <div id="extractions-des-données-pour-un-match" class="section level2">
-<h2>Extractions des données pour un match</h2>
+<h2>1 Extractions des données pour un match</h2>
 <p>Le site “Transfermarkt” présente tous les matchs selon une structure
 homogène. Chaque page dédiée aux résultats d’un match est organisée en
 plusieurs encadrés. Dans un premier temps, notre travail se concentre
@@ -431,8 +431,8 @@ frise chronologique des événements dans laquelle apparaissent les
 minutes auxquelles ont lieu les buts, une information qui nous sera
 essentielle pour le résumé du match.</p>
 <pre class="r"><code># Extraire les minutes en fonction de leurs positions dans la frise
-# La frise présente tous les évènements du match, changements, buts, cartons. Or dans notre cas seul les buts nous intéressent
-# Filtrer uniquement les événements de buts
+# La frise présente tous les évènements du match, tels que les changements, les buts ou encore les cartons. On se concentre dans notre cas sur les buts 
+# Objectif : Filtrer uniquement les événements de buts
 but_elements &lt;- page %&gt;%
   html_nodes(&quot;.sb-leiste-ereignis span.sb-sprite.sb-tor&quot;) %&gt;% html_nodes(xpath = &quot;..&quot;) %&gt;%html_attr(&quot;style&quot;)                                          
 # Les éléments de la frise sont définis en fonction de leurs positions, on convertit alors la position en minutes
@@ -479,7 +479,7 @@ extraire.joueurs &lt;- function(page, section_xpath) {
 Home.data &lt;- extraire.joueurs(page, section.Home)
 Away.data &lt;- extraire.joueurs(page, section.Away)
 
-# Afficher les résultats
+# Résultats
 print(Home.data)</code></pre>
 <pre><code>## $`Gardien de but`
 ## [1] &quot;Maxime Adam&quot;
@@ -516,11 +516,11 @@ Nb.joueurs.lignes &lt;- function(poste) {
   return(length(joueurs))
 }
 
-# Appliquer la fonction pour obtenir le nombre de joueurs pour chaque poste pour Home et Away
+# Fonction pour obtenir le nombre de joueurs pour chaque poste pour Home et Away
 nombre_joueurs_home &lt;- sapply(Home.data, Nb.joueurs.lignes)
 nombre_joueurs_away &lt;- sapply(Away.data, Nb.joueurs.lignes)
 
-# Afficher les résultats
+# Résultats
 print(&quot;Formation équipe domicile&quot;)</code></pre>
 <pre><code>## [1] &quot;Formation équipe domicile&quot;</code></pre>
 <pre class="r"><code>print(nombre_joueurs_home)</code></pre>
@@ -553,22 +553,22 @@ cat(&quot;\nFormation équipe à domicile : &quot;, formation_home, &quot;\n&quo
 ## Formation équipe à domicile :  4-3-3</code></pre>
 <pre class="r"><code>cat(&quot;Formation équipe à l&#39;extérieur : &quot;, formation_away, &quot;\n&quot;)</code></pre>
 <pre><code>## Formation équipe à l&#39;extérieur :  4-4-2</code></pre>
-<p>Le troisième encadré joue également un rôle crucial, car il détaille
+<p>Le troisième encadré joue également un rôle crucial car il détaille
 les données liées aux buts marqués pendant le match. Il fournit des
 informations telles que le nom du buteur, celui du passeur décisif,
 ainsi que la minute à laquelle chaque but a été inscrit. Ces données
 sont particulièrement pertinentes pour enrichir et personnaliser le
-résumé que nous souhaitons élaborer, en mettant en avant les moments
-clés du match.</p>
+résumé que nous souhaitons élaborer, en mettant nottamment en avant les
+moments clés du match.</p>
 <pre class="r"><code># Extraction de données de l&#39;encadré 3 
 
-but_details &lt;- page %&gt;%html_nodes(&quot;.sb-aktion-aktion&quot;) %&gt;%html_text(trim = TRUE)              #Evenements liés aux buts
+but_details &lt;- page %&gt;%html_nodes(&quot;.sb-aktion-aktion&quot;) %&gt;%html_text(trim = TRUE)              # Evenements liés aux buts
 
-but_events &lt;- grep(&quot;But de la saison&quot;, but_details, value = TRUE)                             #Filtrage des données 
+but_events &lt;- grep(&quot;But de la saison&quot;, but_details, value = TRUE)                             # Filtrage des données 
 
-buteurs &lt;- page %&gt;%html_nodes(&quot;.sb-aktion-aktion a.wichtig&quot;) %&gt;%html_text(trim = TRUE)        #Extraction de buteurs
+buteurs &lt;- page %&gt;%html_nodes(&quot;.sb-aktion-aktion a.wichtig&quot;) %&gt;%html_text(trim = TRUE)        # Extraction des buteurs
 
-clubs.but &lt;- page %&gt;% html_nodes(&quot;.sb-aktion-wappen img&quot;) %&gt;%html_attr(&quot;alt&quot;)                 #Extraction du club du buteur        
+clubs.but &lt;- page %&gt;% html_nodes(&quot;.sb-aktion-wappen img&quot;) %&gt;%html_attr(&quot;alt&quot;)                 # Extraction du club du buteur        
 
 #Extraction du club auquel appartient le buteur à partir du logo 
 
@@ -580,18 +580,17 @@ liste_clubs &lt;- c()                                                           
 
 # Fonction d&#39;extraction des statistiques
 for (i in seq_along(but_events)) {
-  buteur_match &lt;- sub(&quot;,.*&quot;, &quot;&quot;, but_events[i])                                        #On extrait le(s) buteur(s) et on les ajoutes 
-                                                                                      #dans la liste vide 
+  buteur_match &lt;- sub(&quot;,.*&quot;, &quot;&quot;, but_events[i])                                        
   passeur_match &lt;- ifelse(grepl(&quot;Passe décisive:&quot;, but_events[i]),
-                          sub(&quot;.*Passe décisive: (.+?),.*&quot;, &quot;\\1&quot;, but_events[i]),            #Extraction des passeurs si identifiés 
-                          &quot;Non spécifié&quot;)                                                    #Si non, passeur non mentionné
+                          sub(&quot;.*Passe décisive: (.+?),.*&quot;, &quot;\\1&quot;, but_events[i]),          
+                          &quot;Non spécifié&quot;)                                                   
   liste_buteurs &lt;- c(liste_buteurs, buteur_match) 
   liste_passeurs &lt;- c(liste_passeurs, passeur_match)
   liste_minutes &lt;- c(liste_minutes, but_minutes[i])
   liste_clubs &lt;- c(liste_clubs,clubs.but[i])
 }
 
-# On créer un data frame pour rassembler les informations
+# Création d&#39;un data frame pour rassembler les informations
 statistiques_buts &lt;- data.frame(
   Clubs = liste_clubs,
   Minutes = liste_minutes,
@@ -608,14 +607,17 @@ print(statistiques_buts)</code></pre>
 ##                                                                                                                                                         Details
 ## left: 25.555555555556%; Abdelhak Belahmeur, 5. But de la saison                                    Passe décisive: Edgar Delbos, 2. Passe décisive de la saison
 ## left: 67.777777777778%;                                                                                             Lucas Schnepp, Penalty, 4. But de la saison</code></pre>
+</div>
+<div id="création-dun-résumé-à-partir-des-données-collèctées" class="section level2">
+<h2>2 Création d’un résumé à partir des données collèctées</h2>
 <p>Une fois les données extraites il est possible de créer un résumé
-naratif du match</p>
-<pre class="r"><code>#Création du résumé du match
+naratif du match:</p>
+<pre class="r"><code>#Création du résumé narratif du match
 
 Resum.match &lt;- function(compet, Stade, T.away, T.home, result, spec, but_events, formation_home, formation_away, Away.data, liste_buteurs,liste_passeurs,liste_clubs,liste_minutes,clubs,clubs.but) {
   resume = paste(
     &quot;Dans le cadre de la compétition&quot;, compet, &quot;, le match opposant&quot;, T.home, &quot;à&quot;, T.away,
-    &quot;s&#39;est déroulé à&quot;, Stade, &quot;, devant une foule de&quot;, spectateurs, &quot;spectateurs. Ce match s&#39;est soldé sur le score de&quot;, result, &quot;.&quot;,
+    &quot;s&#39;est déroulé à&quot;, Stade, &quot;, devant une foule de&quot;, spec, &quot;spectateurs. Ce match s&#39;est soldé sur le score de&quot;, result, &quot;.&quot;,
     &quot;L&#39;équipe de&quot;, T.home, &quot;s&#39;est présentée en&quot;, formation_home
   )
   if (formation_home == formation_away) {
@@ -646,13 +648,39 @@ Resum.match &lt;- function(compet, Stade, T.away, T.home, result, spec, but_even
     resume &lt;- paste0(resume, &quot; Au cours des 90 minutes, les deux équipes ont donné le meilleur d&#39;elles-mêmes, mais aucune d&#39;elles n&#39;a su se départager. Ce match se solde sur un score nul qui n&#39;arrange personne.&quot;)
   }
   resume &lt;- paste0(resume, &quot;\n\nCe match restera dans les mémoires pour ses moments forts et l&#39;intensité du jeu.&quot;)
-  print(resume)
   return(resume)
-}</code></pre>
+}
+
+
+resume &lt;- Resum.match(
+  compet = compet,
+  Stade = Stade,
+  T.away = T.away,
+  T.home = T.home,
+  result = result,
+  spec = spec,
+  but_events = but_events,
+  formation_home = formation_home,
+  formation_away = formation_away,
+  Away.data = Away.data,
+  liste_buteurs = liste_buteurs,
+  liste_passeurs = liste_passeurs,
+  liste_clubs = liste_clubs,
+  liste_minutes = liste_minutes,
+  clubs = clubs.but,
+  clubs.but = clubs.but
+)
+
+cat(resume)</code></pre>
+<pre><code>## Dans le cadre de la compétition Championnat National 3 - Groupe H , le match opposant SR Colmar à ASM Belfort s&#39;est déroulé à Colmar Stadium , devant une foule de 314 spect. spectateurs. Ce match s&#39;est soldé sur le score de 1:1(1:0) . L&#39;équipe de SR Colmar s&#39;est présentée en 4-3-3 , tandis que les hommes de Alexandre Demougeot étaient disposés en 4-4-2 . Voici les moments forts du match : À la minute 23 SR Colmar a trouvé le chemin des filets avec un but signé Abdelhak Belahmeur grâce à une passe décisive de Edgar Delbos .À la minute 61 , c&#39;est Lucas Schnepp qui a inscrit un magnifique but.
+## 
+## Ce match restera dans les mémoires pour ses moments forts et l&#39;intensité du jeu.</code></pre>
+</div>
+<div id="fonction-finale" class="section level2">
+<h2>3 Fonction finale</h2>
 <p>Automatisation du processus</p>
-<pre class="r"><code># Fonction d&#39;extraction des données d&#39;un match afin d&#39;automatiser le processus
-# Fonction d&#39;extraction des données d&#39;un match
-extract_match_data &lt;- function(match_url) {
+<pre class="r"><code># Fonction finale pour automatiser le traitement d&#39;une liste de matchs
+process_matches &lt;- function(url_list, save_path = NULL) {
   # Charger les librairies nécessaires
   library(httr)
   library(stringr)
@@ -660,192 +688,76 @@ extract_match_data &lt;- function(match_url) {
   library(rvest)
   library(dplyr)
   
-  # Configurer le user-agent
-  user_agent &lt;- user_agent(&quot;Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:132.0) Gecko/20100101 Firefox/132.0&quot;)
-  
-  # Requête GET pour récupérer le contenu HTML
-  response &lt;- GET(match_url, user_agent)
-  
-  # Vérifier si la requête a réussi
-  if (response$status_code != 200) {
-    stop(&quot;Erreur : La requête a échoué. Vérifiez l&#39;URL ou la connexion réseau.&quot;)
+  # Fonction interne pour extraire les données d&#39;un match
+  extract_match_summary &lt;- function(match_url) {
+    # Configurer le user-agent
+    user_agent &lt;- user_agent(&quot;Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:132.0) Gecko/20100101 Firefox/132.0&quot;)
+    
+    # Requête GET pour récupérer le contenu HTML
+    response &lt;- GET(match_url, user_agent)
+    if (response$status_code != 200) return(NULL)
+    
+    # Chargement et nettoyage du contenu HTML
+    html &lt;- read_html(content(response, &quot;text&quot;))
+    clean_html &lt;- str_replace_all(as.character(html), &#39;[\\t\\r\\n\\f]&#39;, &#39;&#39;)
+    page &lt;- read_html(clean_html)
+    
+    # Extraction des informations principales
+    competition &lt;- page %&gt;% html_node(&quot;.direct-headline__header&quot;) %&gt;% html_text(trim = TRUE)
+    home_team &lt;- page %&gt;% html_node(&quot;.sb-team.sb-heim .sb-vereinslink&quot;) %&gt;% html_text(trim = TRUE)
+    away_team &lt;- page %&gt;% html_node(&quot;.sb-team.sb-gast .sb-vereinslink&quot;) %&gt;% html_text(trim = TRUE)
+    result &lt;- page %&gt;% html_node(&quot;.sb-endstand&quot;) %&gt;% html_text(trim = TRUE)
+    spectators &lt;- page %&gt;% html_node(&quot;.sb-zusatzinfos strong&quot;) %&gt;% html_text(trim = TRUE)
+    stadium &lt;- page %&gt;% html_node(&quot;.sb-zusatzinfos a&quot;) %&gt;% html_text(trim = TRUE)
+    
+    # Résumé narratif
+    summary &lt;- paste(
+      &quot;Dans le cadre de la compétition&quot;, competition, &quot;, le match opposant&quot;,
+      home_team, &quot;et&quot;, away_team, &quot;s&#39;est déroulé à&quot;, stadium, &quot;devant&quot;, spectators, &quot;spectateurs.&quot;,
+      &quot;Le score final est de&quot;, result, &quot;.&quot;
+    )
+    
+    return(list(
+      Competition = competition,
+      HomeTeam = home_team,
+      AwayTeam = away_team,
+      Result = result,
+      Spectators = spectators,
+      Stadium = stadium,
+      Summary = summary
+    ))
   }
   
-  # Charger et nettoyer le contenu HTML
-  html &lt;- read_html(content(response, &quot;text&quot;))
-  clean_html &lt;- str_replace_all(as.character(html), &#39;[\\t\\r\\n\\f]&#39;, &#39;&#39;)
-  page &lt;- read_html(clean_html)
+  # Traitement de la liste d&#39;URLs
+  all_matches &lt;- lapply(url_list, function(url) {
+    tryCatch(extract_match_summary(url), error = function(e) NULL)
+  })
   
-  # Extraire les informations principales (encadré 1)
-  competition &lt;- page %&gt;% html_node(&quot;.direct-headline__header&quot;) %&gt;% html_text(trim = TRUE)
-  home_team &lt;- page %&gt;% html_node(&quot;.sb-team.sb-heim .sb-vereinslink&quot;) %&gt;% html_text(trim = TRUE)
-  away_team &lt;- page %&gt;% html_node(&quot;.sb-team.sb-gast .sb-vereinslink&quot;) %&gt;% html_text(trim = TRUE)
-  result &lt;- page %&gt;% html_node(&quot;.sb-endstand&quot;) %&gt;% html_text(trim = TRUE)
-  spectators &lt;- page %&gt;% html_node(&quot;.sb-zusatzinfos strong&quot;) %&gt;% html_text(trim = TRUE)
-  date_time &lt;- page %&gt;% html_node(&quot;.sb-datum.hide-for-small&quot;) %&gt;% html_text(trim = TRUE)
-  stadium &lt;- page %&gt;% html_node(&quot;.sb-zusatzinfos a&quot;) %&gt;% html_text(trim = TRUE)
+  # Sauvegarde des résultats si un chemin est fourni
+  if (!is.null(save_path)) {
+    saveRDS(all_matches, file = save_path)
+  }
   
-  # Extraire les événements du match (encadré 3)
-  scores &lt;- page %&gt;% html_nodes(&quot;.sb-aktion-spielstand b&quot;) %&gt;% html_text(trim = TRUE)
-  players &lt;- page %&gt;% html_nodes(&quot;.sb-aktion-aktion a.wichtig&quot;) %&gt;% html_text(trim = TRUE)
-  teams &lt;- page %&gt;% html_nodes(&quot;.sb-aktion-wappen img&quot;) %&gt;% html_attr(&quot;title&quot;)
-  events &lt;- page %&gt;% html_nodes(&quot;.sb-aktion-aktion&quot;) %&gt;% html_text(trim = TRUE)
-  
-  # Ajuster les vecteurs pour correspondre à la longueur maximale
-  max_length &lt;- max(length(scores), length(players), length(events), length(teams))
-  scores &lt;- c(scores, rep(NA, max_length - length(scores)))
-  players &lt;- c(players, rep(NA, max_length - length(players)))
-  events &lt;- c(events, rep(NA, max_length - length(events)))
-  teams &lt;- c(teams, rep(NA, max_length - length(teams)))
-  
-  # Organiser les données des événements
-  match_events &lt;- data.frame(
-    Score = scores,
-    Players = players,
-    Events = events,
-    Teams = teams,
-    stringsAsFactors = FALSE
-  ) %&gt;%
-    mutate(
-      GoalScorer = ifelse(grepl(&quot;But de la saison&quot;, Events), Players, NA),
-      AssistProvider = ifelse(grepl(&quot;Passe décisive&quot;, Events), Players, NA)
-    )
-  
-  # Créer une liste avec les informations principales et les événements
-  match_summary &lt;- list(
-    Competition = competition,
-    HomeTeam = home_team,
-    AwayTeam = away_team,
-    Result = result,
-    Spectators = spectators,
-    DateTime = date_time,
-    Stadium = stadium,
-    Events = match_events
-  )
-  
-  return(match_summary)
+  return(all_matches)
 }
 
-# Exemple d&#39;utilisation pour un match
-url_match &lt;- &quot;https://www.transfermarkt.fr/spielbericht/index/spielbericht/4402015&quot;
-match_data &lt;- tryCatch(
-  extract_match_data(url_match),
-  error = function(e) {
-    cat(&quot;Erreur lors de l&#39;extraction des données : &quot;, e$message, &quot;\n&quot;)
-    NULL
-  }
-)
+# Liste des URLs de matchs
+url_matche &lt;- c(
+  &quot;https://www.transfermarkt.fr/spielbericht/index/spielbericht/4402015&quot;)
 
-# Afficher un tableau propre avec les statistiques
-if (!is.null(match_data)) {
-  # Tableau des informations principales
-  summary_table &lt;- data.frame(
-    Competition = match_data$Competition,
-    HomeTeam = match_data$HomeTeam,
-    AwayTeam = match_data$AwayTeam,
-    Result = match_data$Result,
-    Spectators = match_data$Spectators,
-    DateTime = match_data$DateTime,
-    Stadium = match_data$Stadium,
-    stringsAsFactors = FALSE
-  )
-  
-  # Afficher les statistiques principales
-  cat(&quot;\n=== Statistiques Principales ===\n&quot;)
-  print(summary_table)
-  
-  # Afficher le tableau des événements
-  cat(&quot;\n=== Événements du Match ===\n&quot;)
-  print(match_data$Events)
-  
-} else {
-  cat(&quot;Les données du match n&#39;ont pas pu être extraites.\n&quot;)
-}</code></pre>
+# Appel de la fonction
+results &lt;- process_matches(url_matche, save_path = &quot;match_results.rds&quot;)
+
+# Affichage résumé
+cat(&quot;\n=== Résumé des matchs ===\n&quot;)</code></pre>
 <pre><code>## 
-## === Statistiques Principales ===
-##                         Competition  HomeTeam    AwayTeam   Result Spectators
-## 1 Championnat National 3 - Groupe H SR Colmar ASM Belfort 1:1(1:0) 314 spect.
-##                                                                                                                                                                   DateTime
-## 1 10. Journée                                                                             | sam., 07/12/2024                                                      |  15:00
-##          Stadium
-## 1 Colmar Stadium
-## 
-## === Événements du Match ===
-##    Score                Players
-## 1    1:0     Abdelhak Belahmeur
-## 2    1:1           Edgar Delbos
-## 3   &lt;NA&gt;          Lucas Schnepp
-## 4   &lt;NA&gt;  Benjamin Le Galloudec
-## 5   &lt;NA&gt;         Gabriel Dubois
-## 6   &lt;NA&gt;         Mattéo Benigni
-## 7   &lt;NA&gt; Claude Eboumbou Dipoko
-## 8   &lt;NA&gt;      Guillaume Jacquat
-## 9   &lt;NA&gt;     Moïse Mbemba Yamfu
-## 10  &lt;NA&gt;            Julien Tell
-## 11  &lt;NA&gt;      Virgile Piechocki
-## 12  &lt;NA&gt;       Pythocles Bazolo
-## 13  &lt;NA&gt;             Ali M&#39;Madi
-## 14  &lt;NA&gt;          Lylian Gerber
-## 15  &lt;NA&gt;         Jaffray Nsimba
-## 16  &lt;NA&gt;           Esli Mukendi
-## 17  &lt;NA&gt;             Axel Gnapi
-## 18  &lt;NA&gt; Marc-Antoine Guillaume
-## 19  &lt;NA&gt;         Jaffray Nsimba
-## 20  &lt;NA&gt;          Lucas Schnepp
-## 21  &lt;NA&gt;     Abdelhak Belahmeur
-## 22  &lt;NA&gt;         Mattéo Benigni
-##                                                                                                                                                                                                            Events
-## 1                                                                         Abdelhak Belahmeur, 5. But de la saison                                    Passe décisive: Edgar Delbos, 2. Passe décisive de la saison
-## 2                                                                                                                                                                     Lucas Schnepp, Penalty, 4. But de la saison
-## 3   Benjamin Le Galloudec                                                                                                                                                            Gabriel Dubois, Non rapporté
-## 4  Mattéo Benigni                                                                                                                                                            Claude Eboumbou Dipoko, Non rapporté
-## 5                 Guillaume Jacquat                                                                                                                                                            Moïse Mbemba Yamfu
-## 6                        Julien Tell                                                                                                                                                            Virgile Piechocki
-## 7                          Pythocles Bazolo                                                                                                                                                            Ali M&#39;Madi
-## 8                         Lylian Gerber                                                                                                                                                            Jaffray Nsimba
-## 9                              Esli Mukendi                                                                                                                                                            Axel Gnapi
-## 10                                                                                                                                      Marc-Antoine Guillaume                                    3. Carton jaune
-## 11                                                                                                                                              Jaffray Nsimba                                    5. Carton jaune
-## 12                                                                                                                                               Lucas Schnepp                                    2. Carton jaune
-## 13                                                                                                                                          Abdelhak Belahmeur                                    2. Carton jaune
-## 14                                                                                                                                              Mattéo Benigni                                    4. Carton jaune
-## 15                                                                                                                                                                                                           &lt;NA&gt;
-## 16                                                                                                                                                                                                           &lt;NA&gt;
-## 17                                                                                                                                                                                                           &lt;NA&gt;
-## 18                                                                                                                                                                                                           &lt;NA&gt;
-## 19                                                                                                                                                                                                           &lt;NA&gt;
-## 20                                                                                                                                                                                                           &lt;NA&gt;
-## 21                                                                                                                                                                                                           &lt;NA&gt;
-## 22                                                                                                                                                                                                           &lt;NA&gt;
-##          Teams         GoalScorer     AssistProvider
-## 1    SR Colmar Abdelhak Belahmeur Abdelhak Belahmeur
-## 2  ASM Belfort       Edgar Delbos               &lt;NA&gt;
-## 3    SR Colmar               &lt;NA&gt;               &lt;NA&gt;
-## 4  ASM Belfort               &lt;NA&gt;               &lt;NA&gt;
-## 5    SR Colmar               &lt;NA&gt;               &lt;NA&gt;
-## 6    SR Colmar               &lt;NA&gt;               &lt;NA&gt;
-## 7    SR Colmar               &lt;NA&gt;               &lt;NA&gt;
-## 8  ASM Belfort               &lt;NA&gt;               &lt;NA&gt;
-## 9  ASM Belfort               &lt;NA&gt;               &lt;NA&gt;
-## 10 ASM Belfort               &lt;NA&gt;               &lt;NA&gt;
-## 11 ASM Belfort               &lt;NA&gt;               &lt;NA&gt;
-## 12 ASM Belfort               &lt;NA&gt;               &lt;NA&gt;
-## 13   SR Colmar               &lt;NA&gt;               &lt;NA&gt;
-## 14 ASM Belfort               &lt;NA&gt;               &lt;NA&gt;
-## 15        &lt;NA&gt;               &lt;NA&gt;               &lt;NA&gt;
-## 16        &lt;NA&gt;               &lt;NA&gt;               &lt;NA&gt;
-## 17        &lt;NA&gt;               &lt;NA&gt;               &lt;NA&gt;
-## 18        &lt;NA&gt;               &lt;NA&gt;               &lt;NA&gt;
-## 19        &lt;NA&gt;               &lt;NA&gt;               &lt;NA&gt;
-## 20        &lt;NA&gt;               &lt;NA&gt;               &lt;NA&gt;
-## 21        &lt;NA&gt;               &lt;NA&gt;               &lt;NA&gt;
-## 22        &lt;NA&gt;               &lt;NA&gt;               &lt;NA&gt;</code></pre>
-</div>
-<div id="section" class="section level2">
-<h2></h2>
-<p>Note that the <code>echo = FALSE</code> parameter was added to the
-code chunk to prevent printing of the R code that generated the
-plot.</p>
+## === Résumé des matchs ===</code></pre>
+<pre class="r"><code>for (match in results) {
+  if (!is.null(match)) {
+    cat(match$Summary, &quot;\n&quot;)
+  }
+}</code></pre>
+<pre><code>## Dans le cadre de la compétition Championnat National 3 - Groupe H , le match opposant SR Colmar et ASM Belfort s&#39;est déroulé à Colmar Stadium devant 314 spect. spectateurs. Le score final est de 1:1(1:0) .</code></pre>
 </div>
 
 
