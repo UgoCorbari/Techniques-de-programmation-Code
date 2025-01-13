@@ -470,6 +470,8 @@ kable(resume_parts, caption = "Résumé narratif du match")
 
 ## Fonction finale
 
+- **Création d'une fonction finale afin d'automatiser le processus et obetnir le résumé de n'importe quel match**
+
 ```{r include=FALSE}
 # 1)  Fonction de récupération/nettoyage de la page HTML
 
@@ -724,33 +726,17 @@ Generation_de_resumes <- function(urlpage, user_agent) {
   liste_buteurs = but_stats$liste_buteurs
   liste_passeurs = but_stats$liste_passeurs
   liste_clubs = but_stats$liste_clubs
-
-  resume = FResum.match(
-    compet = compet,
-    Stade = Stade,
-    T.away = T.away,
-    T.home = T.home,
-    result = result,
-    spec = spec,
-    formation_home = formation_home,
-    formation_away = formation_away,
-    liste_buteurs = liste_buteurs,
-    liste_passeurs = liste_passeurs,
-    liste_clubs = liste_clubs,
-    liste_minutes = but_minutes
-  )
-  
-  return(resume)
 }
+```
 
-# Test avec un autre lien
+# Test avec un autre lien pour obtenir le résumé d'un autre match
+
+```{r}
 user_agent = user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:132.0) Gecko/20100101 Firefox/132.0")
 urlpage = "https://www.transfermarkt.fr/spielbericht/index/spielbericht/4402014"  # Nouveau match
 Fonction_Finale = Generation_de_resumes(urlpage, user_agent)
 cat(Fonction_Finale)
-
 ```
-
 
 ## V. Conclusion du projet
 
