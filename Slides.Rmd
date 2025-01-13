@@ -6,6 +6,8 @@ output:
   ioslides_presentation:
     widescreen: true
     smaller: true
+    highlight: "monokai"
+
 ---
 
 ## Sommaire
@@ -39,7 +41,7 @@ output:
   - Automatiser la récupération, l’analyse, et la structuration des données pour produire un résumé narratif détaillé.
 
 - **Extraction et analyse des données :**
-   - Configureration d'un **User-Agent** pour accéder aux pages ciblées.
+   - Configuration d'un **User-Agent** pour accéder aux pages ciblées.
    - Nettoyage et structuration descdonnées HTML.
    - Identification des équipes, du score, des buteurs, et des moments clés.
 
@@ -57,6 +59,60 @@ output:
     - Encadré 1 : Informations clées telles que la compétition dans laquelle se déroule le match, les équipes impliquées ainsi que le résultat final
     - Encadré 2 : Compositions des équipes
     - Encadré 3 : Données liées aux buts marqués pendant le match, nom du buteur, nom du du passeur décisif, la minute à laquelle chaque but a été inscrit.
+    
+## Lignes de code.    
+
+Voici les étapes principales pour récupérer et préparer les données web :
+
+```{r eval=FALSE, class.source="code"}
+
+# Étape 1 : Détection du User-Agent
+user_agent <- httr::user_agent(
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:132.0) Gecko/20100101 Firefox/132.0"
+)
+
+# Étape 2 : Définition de l'URL de la page cible
+urlpage <- "https://www.transfermarkt.fr/spielbericht/index/spielbericht/4402015"
+
+# Étape 3 : Requête HTTP pour récupérer la page web
+foot <- httr::GET(urlpage, user_agent)
+
+# Étape 4 : Lecture et nettoyage du contenu HTML
+html <- xml2::read_html(
+  httr::content(foot, "text")
+)
+
+clean_html <- stringr::str_replace_all(
+  as.character(html),
+  "[\\t\\r\\n\\f]", ""
+)
+
+```
+
+## Principales données de l'encadré 1
+
+```{r eval=FALSE}
+page <- read_html(clean_html)
+
+compet <- page %>% html_node(".direct-headline__header") %>%  html_text(trim = TRUE)            # Compétition
+
+T.home <- page %>% html_node(".sb-team.sb-heim .sb-vereinslink") %>% html_text(trim = TRUE)     # Equipe Domicile
+
+T.away <- page %>% html_node(".sb-team.sb-gast .sb-vereinslink") %>% html_text(trim = TRUE)     # Equipe Exterieur
+
+result <- page %>% html_node(".sb-endstand") %>%html_text(trim = TRUE)                          # Résultat
+
+spec <- page %>% html_node(".sb-zusatzinfos strong") %>% html_text(trim = TRUE)                 # Spectateurs
+
+date <- page %>% html_node(".sb-datum.hide-for-small") %>% html_text(trim = TRUE)               # Date du match
+
+Stade <- page %>% html_node(".sb-zusatzinfos a") %>% html_text(trim = TRUE)                     # Nom du stade
+
+# Résumé de ces informations
+cat(sprintf("Compétition: %s\nMatch: %s %s %s\nSpectateurs: %s\nDate et heure: %s\nStade: %s\n",
+            compet, T.home, result, T.away, spec, date, Stade))
+```
+
     
 ## III. Création d'un résumé à partir des données collectées
 
