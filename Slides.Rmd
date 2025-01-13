@@ -27,19 +27,12 @@ output:
 
 ### Présentation du projet
 
--   **Contexte :**
-    -   Projet lié à l'Unité d'enseignements "Techniques de programmation".
-    -   Développement d'un programme générant des **résumés de matchs de football**.
-    -   Utilisation des données du site *Transfermarkt*.
--   **Objectif principal :**
-    -   Automatiser la récupération, l'analyse, et la structuration des données pour produire un résumé narratif détaillé.
--   **Extraction et analyse des données :**
-    -   Configuration d'un **User-Agent** pour accéder aux pages ciblées.
-    -   Nettoyage et structuration descdonnées HTML.
-    -   Identification des équipes, du score, des buteurs, et des moments clés.
--   **Génération du résumé et automatisation :**
-    -   Produire un résumé narratif automatique pour n'importe quel match.
-    -   Rendre le processus entièrement automatisé et réutilisable.
+-   **Objectifs principaux :**
+    - Développer un programme générant des **résumés de matchs de football**.
+    - Automatiser la récupération, l'analyse, et la structuration des données pour produire un résumé narratif détaillé, automatisé et réutilisable
+-   **Motivations :**
+    -   Pratiquer des techniques de programmation, notamment le web scraping
+    -   Le football : une passion commune
 
 ## II. Extraction des données pour un unique match
 
@@ -50,7 +43,7 @@ output:
     -   Plusieurs encadrés structurant la page web ciblée
     -   Encadré 1 : Informations clées telles que la compétition dans laquelle se déroule le match, les équipes impliquées ainsi que le résultat final
     -   Encadré 2 : Compositions des équipes
-    -   Encadré 3 : Données liées aux buts marqués pendant le match, nom du buteur, nom du du passeur décisif, la minute à laquelle chaque but a été inscrit.
+    -   Encadré 3 : Données liées aux buts marqués pendant le match, nom du buteur, nom du passeur décisif, la minute à laquelle chaque but a été inscrit.
 
 ## Préparation et Structure.
 
