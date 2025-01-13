@@ -297,55 +297,7 @@ resume <- Resum.match(
 # Affichage du résumé
 cat(resume)
 
-# Création du résumé narratif du match 
-Resum.match <- function(compet, Stade, T.away, T.home, result, spec, formation_home, formation_away, liste_buteurs, liste_passeurs, liste_clubs, liste_minutes) {
-  # Convertir les formations en chaînes uniques si nécessaire
-  formation_home <- paste(formation_home, collapse = ", ")
-  formation_away <- paste(formation_away, collapse = ", ")
-  
-  # Introduction du résumé
-  resume = paste(
-    "Dans le cadre de la compétition", compet, ", le match opposant", T.home, "à", T.away,
-    "s'est déroulé à", Stade, ", devant une foule de", spec, "spectateurs. Ce match s'est soldé sur le score de", result, ".",
-    "L'équipe de", T.home, "s'est présentée en", formation_home
-  )
-  
-  # Ajouter la formation de l'équipe adverse
-if (formation_home == formation_away) {
-  resume = paste(resume, ", tout comme les hommes de", T.away, ", également disposés en", formation_away, ".")
-} else {
-  resume = paste(resume, ", tandis que les hommes de", T.away, "étaient disposés en", formation_away, ".")
-}
 
-# Ajouter les moments forts si des buts ont été marqués
-if (length(liste_buteurs) > 0) {
-  resume <- paste0(resume, " Voici les moments forts du match : ")
-  
-  for (i in 1:length(liste_buteurs)) {
-    minute <- liste_minutes[i]
-    buteur <- liste_buteurs[i]
-    passeur <- liste_passeurs[i]
-    club <- liste_clubs[i]
-    
-    if (passeur != "Non spécifié") {
-      event_text <- paste(
-        "À la minute", minute, club, "a trouvé le chemin des filets avec un but signé", buteur,
-        "grâce à une passe décisive de", passeur, "."
-      )
-    } else {
-      event_text <- paste("À la minute", minute, ", c'est", buteur, "qui a inscrit un magnifique but.")
-    }
-    resume <- paste0(resume, event_text, " ")
-  }
-} else {
-  resume <- paste0(resume, " Au cours des 90 minutes, les deux équipes ont donné le meilleur d'elles-mêmes, mais aucune d'elles n'a su se départager. Ce match se solde sur un score nul qui n'arrange personne.")
-}
-
-# Conclusion du résumé
-resume <- paste0(resume, "\n\nCe match nous a offert 90 minutes de divertissements et nous avons hâte de suivre ces deux équipes pour la suite de la saison.")
-
-return(resume)
-}
 
 ```
 
@@ -361,7 +313,6 @@ Fget_page = function(urlpage, user_agent) {
   clean_html = str_replace_all(as.character(html), '[\\t\\r\\n\\f]', '')
   return(clean_html)
 }
-
 Fextract_match_summary <- function(match_url) {
   user_agent <- user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:132.0) Gecko/20100101 Firefox/132.0")
   response <- GET(match_url, user_agent)
@@ -541,61 +492,60 @@ liste_minutes <- statistiques_buts$Minute
 liste_clubs <- statistiques_buts$Club
 # Création du résumé narratif du match
 
-
 FResum.match <- function(compet, Stade, T.away, T.home, result, spec, formation_home, formation_away, liste_buteurs, liste_passeurs, liste_clubs, liste_minutes) {
-  resume = paste(
-    "Dans le cadre de la compétition", compet, ", le match opposant", T.home, "à", T.away,
-    "s'est déroulé à", Stade, ", devant une foule de", spec, "spectateurs. Ce match s'est soldé sur le score de", result, ".",
-    "L'équipe de", T.home, "s'est présentée en", paste(formation_home, collapse = "-")
-  )
-  formation_home_str <- paste(formation_home, collapse = "-")
-  formation_away_str <- paste(formation_away, collapse = "-")
-  
-  if (formation_home_str == formation_away_str) {
-    resume = paste(resume, ", tout comme les hommes de", T.away, ", également disposés en", formation_away_str, ".")
-  } else {
-    resume = paste(resume, ", tandis que les hommes de", T.away, "étaient disposés en", formation_away_str, ".")
-  }
-  if (length(liste_buteurs) > 0) {
-    resume <- paste0(resume, " Voici les moments forts du match : ")
-    
-    for (i in 1:length(liste_buteurs)) {
-      minute <- liste_minutes[i]
-      buteur <- liste_buteurs[i]
-      passeur <- liste_passeurs[i]
-      club <- liste_clubs[i]
-      
-      if (passeur != "Non spécifié") {
-        event_text <- paste(
-          "À la minute", minute, club, "a trouvé le chemin des filets avec un but signé", buteur,
-          "grâce à une passe décisive de", passeur, "."
-        )
-      } else {
-        event_text <- paste("À la minute", minute, ", c'est", buteur, "qui a inscrit un magnifique but.")
-      }
-      resume <- paste0(resume, event_text)
-    }
-  } else {
-    resume <- paste0(resume, " Au cours des 90 minutes, les deux équipes ont donné le meilleur d'elles-mêmes, mais aucune d'elles n'a su se départager. Ce match se solde sur un score nul qui n'arrange personne.")
-  }
-  resume <- paste0(resume, "\n\nCe match nous à offert 90 minutes de divertissements et nous avons hâte de suivre ces deux équipes pour la suite de la saison.")
-  return(resume)
+   resume = paste(
+     "Dans le cadre de la compétition", compet, ", le match opposant", T.home, "à", T.away,
+     "s'est déroulé à", Stade, ", devant une foule de", spec, "spectateurs. Ce match s'est soldé sur le score de", result, ".",
+     "L'équipe de", T.home, "s'est présentée en", paste(formation_home, collapse = "-")
+   )
+   formation_home_str <- paste(formation_home, collapse = "-")
+   formation_away_str <- paste(formation_away, collapse = "-")
+
+   if (formation_home_str == formation_away_str) {
+     resume = paste(resume, ", tout comme les hommes de", T.away, ", également disposés en", formation_away_str, ".")
+   } else {
+     resume = paste(resume, ", tandis que les hommes de", T.away, "étaient disposés en", formation_away_str, ".")
+   }
+if (length(liste_buteurs) > 0) {
+   resume <- paste0(resume, " Voici les moments forts du match : ")
+
+   for (i in 1:length(liste_buteurs)) {
+     minute <- liste_minutes[i]
+     buteur <- liste_buteurs[i]
+     passeur <- liste_passeurs[i]
+     club <- liste_clubs[i]
+
+     if (passeur != "Non spécifié") {
+       event_text <- paste(
+         "À la minute", minute, club, "a trouvé le chemin des filets avec un but signé", buteur,
+         "grâce à une passe décisive de", passeur, "."
+       )
+     } else {
+       event_text <- paste("À la minute", minute, ", c'est", buteur, "qui a inscrit un magnifique but.")
+     }
+     resume <- paste0(resume, event_text)
+   }
+ } else {
+   resume <- paste0(resume, " Au cours des 90 minutes, les deux équipes ont donné le meilleur d'elles-mêmes, mais aucune d'elles n'a su se départager. Ce match se solde sur un score nul qui n'arrange personne.")
+ }
+ resume <- paste0(resume, "\n\nCe match nous à offert 90 minutes de divertissements et nous avons hâte de suivre ces deux équipes pour la suite de la saison.")
+   return(resume)
 }
 
 # Appel de la fonction Resum.match
 resume <- Resum.match(
-  compet = compet,
-  Stade = Stade,
-  T.away = T.away,
-  T.home = T.home,
-  result = result,
-  spec = spec,
-  formation_home = formation_home,
-  formation_away = formation_away,
-  liste_buteurs = liste_buteurs,
-  liste_passeurs = liste_passeurs,
-  liste_clubs = liste_clubs,
-  liste_minutes = liste_minutes
+ compet = compet,
+ Stade = Stade,
+ T.away = T.away,
+ T.home = T.home,
+ result = result,
+ spec = spec,
+ formation_home = formation_home,
+ formation_away = formation_away,
+ liste_buteurs = liste_buteurs,
+ liste_passeurs = liste_passeurs,
+ liste_clubs = liste_clubs,
+ liste_minutes = liste_minutes
 )
 
 # Affichage du résumé
@@ -605,27 +555,28 @@ cat(resume)
 ## Fonction finale
 
 ```{r}
-# Fonction finale
-
+# Fonction pour générer le résumé
 Generation_de_resumes <- function(urlpage, user_agent) {
   clean_html = Fget_page(urlpage, user_agent)
   page = read_html(clean_html)
+  
   details = Fextraire_details_match(page)
   but_minutes = Fextract_minutes(page)
   but_stats = Fextraire_buteurs(page, but_minutes)
   formations = Fextraire_formation2(page)
-  formation_home = formations$formation_home  # Formation équipe à domicile
-  formation_away = formations$formation_away  # Formation équipe à l'extérieur
+  
+  formation_home = formations$formation_home
+  formation_away = formations$formation_away
   compet = details$compet
   Stade = details$Stade
   T.away = details$T.away
   T.home = details$T.home
   result = details$result
   spec = details$spec
-  liste_buteurs = but_stats$liste_buteurs  # Liste des buteurs
-  liste_passeurs = but_stats$liste_passeurs  # Liste des passeurs
-  liste_clubs = but_stats$liste_clubs  # Liste des clubs
-  # Appel de la fonction Resum.match()
+  liste_buteurs = but_stats$liste_buteurs
+  liste_passeurs = but_stats$liste_passeurs
+  liste_clubs = but_stats$liste_clubs
+
   resume = FResum.match(
     compet = compet,
     Stade = Stade,
@@ -638,15 +589,19 @@ Generation_de_resumes <- function(urlpage, user_agent) {
     liste_buteurs = liste_buteurs,
     liste_passeurs = liste_passeurs,
     liste_clubs = liste_clubs,
-    liste_minutes = but_minutes  # Passer les minutes des buts
+    liste_minutes = but_minutes
   )
   
   return(resume)
 }
 
-# Test de la fonction
+# Test avec un autre lien
 user_agent = user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:132.0) Gecko/20100101 Firefox/132.0")
-urlpage = "https://www.transfermarkt.fr/spielbericht/index/spielbericht/4437897"  # Remplacer par l'URL du match
+urlpage = "https://www.transfermarkt.fr/spielbericht/index/spielbericht/4363891"  # Nouveau match
 Fonction_Finale = Generation_de_resumes(urlpage, user_agent)
 cat(Fonction_Finale)
-````
+
+```
+
+
+

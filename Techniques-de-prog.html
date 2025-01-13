@@ -445,6 +445,7 @@ print(but_minutes)</code></pre>
 une information pertinente pour comprendre la physionomie des
 matchs.</p>
 <pre class="r"><code># Fonction pour extraire les joueurs par poste et le manager pour une équipe spécifique
+
 extraire.joueurs &lt;- function(page, section_xpath) {
   section &lt;- page %&gt;% html_nodes(xpath = section_xpath)
   postes &lt;- c(&quot;Gardien de but&quot;, &quot;Défenseurs&quot;, &quot;Milieux de terrain&quot;, &quot;Attaquants&quot;, &quot;Manager&quot;)
@@ -511,87 +512,77 @@ ainsi que la minute à laquelle chaque but a été inscrit. Ces données
 sont particulièrement pertinentes pour enrichir et personnaliser le
 résumé que nous souhaitons élaborer, en mettant nottamment en avant les
 moments clés du match.</p>
-<pre class="r"><code># Fonction d&#39;extraction de données de l&#39;encadré 3 
-extraire_buteurs = function(page, but_minutes) {
-  # Extraire les informations pertinentes pour chaque événement
-  but_events &lt;- page %&gt;% html_nodes(&quot;.sb-aktion-aktion&quot;) %&gt;% html_text(trim = TRUE)
-  buteurs &lt;- page %&gt;% html_nodes(&quot;.sb-aktion-aktion a.wichtig&quot;) %&gt;% html_text(trim = TRUE)
-  passeurs &lt;- page %&gt;% html_nodes(&quot;.sb-aktion-aktion .sb-aktion-detail&quot;) %&gt;% html_text(trim = TRUE)
-  
-  # Initialisation des listes
-  liste_buteurs &lt;- c()
-  liste_passeurs &lt;- c()
-  liste_minutes &lt;- c()
-  liste_evenements &lt;- c()
+<pre class="r"><code># Extraction de données de l&#39;encadré 3 
 
-  for (i in seq_along(but_events)) {
-    # Vérifier si l&#39;événement est un but
-    if (grepl(&quot;but&quot;, tolower(but_events[i]), fixed = TRUE)) {
-      # Extraire les détails du buteur, passeur et événement
-      buteur_match &lt;- buteurs[i]
-      passeur_match &lt;- ifelse(grepl(&quot;Passe décisive:&quot;, passeurs[i]), 
-                              sub(&quot;.*Passe décisive: (.+)&quot;, &quot;\\1&quot;, passeurs[i]), 
-                              &quot;Non spécifié&quot;)
-      minute_match &lt;- but_minutes[i]
-      evenement_match &lt;- but_events[i]
-      
-      # Ajouter les informations extraites dans les listes
-      liste_buteurs &lt;- c(liste_buteurs, buteur_match)
-      liste_passeurs &lt;- c(liste_passeurs, passeur_match)
-      liste_minutes &lt;- c(liste_minutes, minute_match)
-      liste_evenements &lt;- c(liste_evenements, evenement_match)
-    }
-  }
+but_details &lt;- page %&gt;%html_nodes(&quot;.sb-aktion-aktion&quot;) %&gt;%html_text(trim = TRUE)              # Evenements liés aux buts
 
-  # Création du data frame
-  statistiques_buts &lt;- data.frame(
-    Minute = liste_minutes,
-    Buteur = liste_buteurs,
-    Passeur = liste_passeurs,
-    Evenement = liste_evenements,
-    stringsAsFactors = FALSE
-  )
-  
-  return(statistiques_buts)
+but_events &lt;- grep(&quot;But de la saison&quot;, but_details, value = TRUE)                             # Filtrage des données 
+
+buteurs &lt;- page %&gt;%html_nodes(&quot;.sb-aktion-aktion a.wichtig&quot;) %&gt;%html_text(trim = TRUE)        # Extraction des buteurs
+
+clubs.but &lt;- page %&gt;% html_nodes(&quot;.sb-aktion-wappen img&quot;) %&gt;%html_attr(&quot;alt&quot;)                 # Extraction du club du buteur        
+
+#Extraction du club auquel appartient le buteur à partir du logo 
+
+
+liste_buteurs &lt;- c()                                                                   # Initialisation des listes pour les buteurs 
+liste_passeurs &lt;- c()                                                                  # Initialisation des listes pour les passeurs
+liste_minutes &lt;- c()                                                                   # Initialisation des listes pour les minutes
+liste_clubs &lt;- c()                                                                     # Initialisation des listes pour les clubs
+
+# Fonction d&#39;extraction des statistiques
+for (i in seq_along(but_events)) {
+  buteur_match &lt;- sub(&quot;,.*&quot;, &quot;&quot;, but_events[i])                                        
+  passeur_match &lt;- ifelse(grepl(&quot;Passe décisive:&quot;, but_events[i]),
+                          sub(&quot;.*Passe décisive: (.+?),.*&quot;, &quot;\\1&quot;, but_events[i]),          
+                          &quot;Non spécifié&quot;)                                                   
+  liste_buteurs &lt;- c(liste_buteurs, buteur_match) 
+  liste_passeurs &lt;- c(liste_passeurs, passeur_match)
+  liste_minutes &lt;- c(liste_minutes, but_minutes[i])
+  liste_clubs &lt;- c(liste_clubs,clubs.but[i])
 }
 
-statistiques_buts &lt;- extraire_buteurs(page, but_minutes)
+# Création d&#39;un data frame pour rassembler les informations
+statistiques_buts &lt;- data.frame(
+  Clubs = liste_clubs,
+  Minutes = liste_minutes,
+  Buteur = liste_buteurs,
+  Passeur = liste_passeurs,
+  Details = but_events,
+  stringsAsFactors = FALSE
+)
+
 print(statistiques_buts)</code></pre>
-<pre><code>##                         Minute             Buteur      Passeur
-## left: 25.555555555556%;     23 Abdelhak Belahmeur Non spécifié
-## left: 67.777777777778%;     61       Edgar Delbos Non spécifié
-##                                                                                                                                                       Evenement
+<pre><code>##                               Clubs Minutes             Buteur      Passeur
+## left: 25.555555555556%;   SR Colmar      23 Abdelhak Belahmeur Edgar Delbos
+## left: 67.777777777778%; ASM Belfort      61      Lucas Schnepp Non spécifié
+##                                                                                                                                                         Details
 ## left: 25.555555555556%; Abdelhak Belahmeur, 5. But de la saison                                    Passe décisive: Edgar Delbos, 2. Passe décisive de la saison
 ## left: 67.777777777778%;                                                                                             Lucas Schnepp, Penalty, 4. But de la saison</code></pre>
-<pre class="r"><code>passeurs &lt;- page %&gt;% html_nodes(&quot;.sb-aktion-aktion .sb-aktion-detail&quot;) %&gt;% html_text(trim = TRUE)
-print(passeurs)  # Vérifier ce que vous obtenez dans la variable passeurs</code></pre>
-<pre><code>## character(0)</code></pre>
 </div>
 <div id="création-dun-résumé-à-partir-des-données-collèctées" class="section level2">
 <h2>2 Création d’un résumé à partir des données collèctées</h2>
 <p>Une fois les données extraites il est possible de créer un résumé
 naratif du match:</p>
-<pre class="r"><code># Création du résumé narratif du match 
+<pre class="r"><code># Vérifiez que formation_home et formation_away sont bien définis avant l&#39;appel
+formations &lt;- extraire_formation(page)  # Extrait les formations à partir de la page
+
+# Initialisez les variables formation_home et formation_away
+formation_home &lt;- formations$formation_home
+formation_away &lt;- formations$formation_away
+
+# Création du résumé narratif du match
 Resum.match &lt;- function(compet, Stade, T.away, T.home, result, spec, formation_home, formation_away, liste_buteurs, liste_passeurs, liste_clubs, liste_minutes) {
-  # Convertir les formations en chaînes uniques si nécessaire
-  formation_home &lt;- paste(formation_home, collapse = &quot;, &quot;)
-  formation_away &lt;- paste(formation_away, collapse = &quot;, &quot;)
-  
-  # Introduction du résumé
   resume = paste(
     &quot;Dans le cadre de la compétition&quot;, compet, &quot;, le match opposant&quot;, T.home, &quot;à&quot;, T.away,
     &quot;s&#39;est déroulé à&quot;, Stade, &quot;, devant une foule de&quot;, spec, &quot;spectateurs. Ce match s&#39;est soldé sur le score de&quot;, result, &quot;.&quot;,
     &quot;L&#39;équipe de&quot;, T.home, &quot;s&#39;est présentée en&quot;, formation_home
   )
-  
-  # Ajouter la formation de l&#39;équipe adverse
   if (formation_home == formation_away) {
     resume = paste(resume, &quot;, tout comme les hommes de&quot;, T.away, &quot;, également disposés en&quot;, formation_away, &quot;.&quot;)
   } else {
     resume = paste(resume, &quot;, tandis que les hommes de&quot;, T.away, &quot;étaient disposés en&quot;, formation_away, &quot;.&quot;)
   }
-
-  # Ajouter les moments forts si des buts ont été marqués
   if (length(liste_buteurs) &gt; 0) {
     resume &lt;- paste0(resume, &quot; Voici les moments forts du match : &quot;)
     
@@ -609,17 +600,36 @@ Resum.match &lt;- function(compet, Stade, T.away, T.home, result, spec, formatio
       } else {
         event_text &lt;- paste(&quot;À la minute&quot;, minute, &quot;, c&#39;est&quot;, buteur, &quot;qui a inscrit un magnifique but.&quot;)
       }
-      resume &lt;- paste0(resume, event_text, &quot; &quot;)
+      resume &lt;- paste0(resume, event_text)
     }
   } else {
     resume &lt;- paste0(resume, &quot; Au cours des 90 minutes, les deux équipes ont donné le meilleur d&#39;elles-mêmes, mais aucune d&#39;elles n&#39;a su se départager. Ce match se solde sur un score nul qui n&#39;arrange personne.&quot;)
   }
-
-  # Conclusion du résumé
-  resume &lt;- paste0(resume, &quot;\n\nCe match nous a offert 90 minutes de divertissements et nous avons hâte de suivre ces deux équipes pour la suite de la saison.&quot;)
-  
+  resume &lt;- paste0(resume, &quot;\n\nCe match nous à offert 90 minutes de divertissements et nous avons hâte de suivre ces deux équipes pour la suite de la saison.&quot;)
   return(resume)
-}</code></pre>
+}
+
+# Appel de la fonction Resum.match
+resume &lt;- Resum.match(
+  compet = compet,
+  Stade = Stade,
+  T.away = T.away,
+  T.home = T.home,
+  result = result,
+  spec = spec,
+  formation_home = formation_home,
+  formation_away = formation_away,
+  liste_buteurs = liste_buteurs,
+  liste_passeurs = liste_passeurs,
+  liste_clubs = liste_clubs,
+  liste_minutes = liste_minutes
+)
+
+# Affichage du résumé
+cat(resume)</code></pre>
+<pre><code>## Dans le cadre de la compétition Championnat National 3 - Groupe H , le match opposant SR Colmar à ASM Belfort s&#39;est déroulé à Colmar Stadium , devant une foule de 314 spect. spectateurs. Ce match s&#39;est soldé sur le score de 1:1(1:0) . L&#39;équipe de SR Colmar s&#39;est présentée en 4-3-3 , tandis que les hommes de ASM Belfort étaient disposés en 4-4-2 . Voici les moments forts du match : À la minute 23 SR Colmar a trouvé le chemin des filets avec un but signé Abdelhak Belahmeur grâce à une passe décisive de Edgar Delbos .À la minute 61 , c&#39;est Lucas Schnepp qui a inscrit un magnifique but.
+## 
+## Ce match nous à offert 90 minutes de divertissements et nous avons hâte de suivre ces deux équipes pour la suite de la saison.</code></pre>
 </div>
 <div id="restructurer-le-code-en-ensembles-de-fonctions" class="section level2">
 <h2>3 Restructurer le code en ensembles de fonctions</h2>
@@ -657,8 +667,8 @@ Resum.match &lt;- function(compet, Stade, T.away, T.home, result, spec, formatio
   
   details = list(
     compet = compet, 
-    T.home = T.home, 
-    T.away = T.away, 
+    home_team = T.home, 
+    away_team = T.away, 
     result = result, 
     spectators = spec, 
     match_date = date, 
@@ -667,173 +677,101 @@ Resum.match &lt;- function(compet, Stade, T.away, T.home, result, spec, formatio
   return(details)
 }</code></pre>
 <ol start="3" style="list-style-type: decimal">
-<li>Modification de la fonction d’extraction des formations</li>
+<li>Fonction pour extraire les minutes des buts</li>
 </ol>
-<p>Après avoir examiné d’autres pages rattachés à des matchs de
-football, nous avons remarqué que la structure de l’encadré présentant
-les formatons peut prendre une seconde forme. Il s’agit alors de
-modifier la fonction extraire_formation pour prendre en compte cette
-possibilité :</p>
-<pre class="r"><code>extraire_formation2 &lt;- function(page) {
-  # XPaths pour les sections avec les données de formation
-  section.Home &lt;- &quot;//div[contains(@class, &#39;large-6&#39;) and contains(@class, &#39;aufstellung-box&#39;)]&quot; 
-  section.Away &lt;- &quot;//div[contains(@class, &#39;large-6&#39;) and not(contains(@class, &#39;aufstellung-box&#39;))]&quot; 
+<pre class="r"><code>extraire_but_minutes = function(page) {
+  but_elements &lt;- page %&gt;% 
+    html_nodes(&quot;.sb-leiste-ereignis span.sb-sprite.sb-tor&quot;) %&gt;% 
+    html_nodes(xpath = &quot;..&quot;) %&gt;% html_attr(&quot;style&quot;)
   
-  # Fonction pour extraire la formation directement si elle est présente sous forme de texte
-  extraire_formation_directe &lt;- function(section) {
-    formation &lt;- section %&gt;% html_nodes(xpath = &quot;.//div[contains(@class, &#39;aufstellung-unterueberschrift&#39;)]&quot;) %&gt;% html_text(trim = TRUE)
-    
-    if(length(formation) &gt; 0) {
-      return(formation)
+  extract_minutes &lt;- function(style) {
+    if (grepl(&quot;left:&quot;, style)) {
+      percent &lt;- as.numeric(sub(&quot;.*left: ([0-9.]+)%;.*&quot;, &quot;\\1&quot;, style))
+      return(round((percent * 90) / 100, 0))
+    } else {
+      return(NA)
     }
-    return(NULL)
-  }
-
-  # Extraire la formation directement si disponible pour chaque équipe
-  formation_home &lt;- extraire_formation_directe(page %&gt;% html_nodes(xpath = section.Home))
-  formation_away &lt;- extraire_formation_directe(page %&gt;% html_nodes(xpath = section.Away))
-  
-  # Si la formation est absente sous forme de texte, extraire les joueurs et calculer la formation
-  if (is.null(formation_home)) {
-    Home.data &lt;- extraire.joueurs(page, section.Home)
-    nombre_joueurs_home &lt;- sapply(Home.data, Nb.joueurs.lignes)
-    formation_home &lt;- paste(
-      nombre_joueurs_home[&quot;Défenseurs&quot;], 
-      nombre_joueurs_home[&quot;Milieux de terrain&quot;], 
-      nombre_joueurs_home[&quot;Attaquants&quot;], sep = &quot;-&quot;
-    )
   }
   
-  if (is.null(formation_away)) {
-    Away.data &lt;- extraire.joueurs(page, section.Away)
-    nombre_joueurs_away &lt;- sapply(Away.data, Nb.joueurs.lignes)
-    formation_away &lt;- paste(
-      nombre_joueurs_away[&quot;Défenseurs&quot;], 
-      nombre_joueurs_away[&quot;Milieux de terrain&quot;], 
-      nombre_joueurs_away[&quot;Attaquants&quot;], sep = &quot;-&quot;
-    )
-  }
-
-  # Retourner les formations
-  return(list(formation_home = formation_home, formation_away = formation_away))
+  but_minutes &lt;- sapply(but_elements, extract_minutes)
+  return(but_minutes)
+}</code></pre>
+<ol start="4" style="list-style-type: decimal">
+<li>Fonction pour extraire les buteurs</li>
+</ol>
+<pre class="r"><code>extraire_buteurs = function(page, but_minutes) {
+  but_events &lt;- page %&gt;% html_nodes(&quot;.sb-aktion-aktion&quot;) %&gt;% html_text(trim = TRUE)
+  buteurs &lt;- page %&gt;% html_nodes(&quot;.sb-aktion-aktion a.wichtig&quot;) %&gt;% html_text(trim = TRUE)
+  clubs.but &lt;- page %&gt;% html_nodes(&quot;.sb-aktion-wappen img&quot;) %&gt;% html_attr(&quot;alt&quot;)
+  
+  liste_buteurs &lt;- c()
+  liste_passeurs &lt;- c()
+  liste_minutes &lt;- c()
+  liste_clubs &lt;- c()
+  
+  for (i in seq_along(but_events)) {
+  buteur_match &lt;- sub(&quot;,.*&quot;, &quot;&quot;, but_events[i])                                        
+  passeur_match &lt;- ifelse(grepl(&quot;Passe décisive:&quot;, but_events[i]),
+                          sub(&quot;.*Passe décisive: (.+?),.*&quot;, &quot;\\1&quot;, but_events[i]),          
+                          &quot;Non spécifié&quot;)                                                   
+  liste_buteurs &lt;- c(liste_buteurs, buteur_match) 
+  liste_passeurs &lt;- c(liste_passeurs, passeur_match)
+  liste_minutes &lt;- c(liste_minutes, but_minutes[i])
+  liste_clubs &lt;- c(liste_clubs,clubs.but[i])
 }
 
-# Exemple d&#39;appel de la fonction
-formations &lt;- extraire_formation(page)
-
-# Afficher les résultats
-cat(&quot;\nFormation équipe à domicile : &quot;, formations$formation_home, &quot;\n&quot;) </code></pre>
-<pre><code>## 
-## Formation équipe à domicile :  4-3-3</code></pre>
-<pre class="r"><code>cat(&quot;Formation équipe à l&#39;extérieur : &quot;, formations$formation_away, &quot;\n&quot;)</code></pre>
-<pre><code>## Formation équipe à l&#39;extérieur :  4-4-2</code></pre>
-</div>
-<div id="fonction-finale" class="section level2">
-<h2>Fonction finale</h2>
+# Création d&#39;un data frame pour rassembler les informations
+statistiques_buts &lt;- data.frame(
+  Clubs = liste_clubs,
+  Minutes = liste_minutes,
+  Buteur = liste_buteurs,
+  Passeur = liste_passeurs,
+  Details = but_events,
+  stringsAsFactors = FALSE
+)
+  return(statistiques_buts)
+}</code></pre>
+<ol start="5" style="list-style-type: decimal">
+<li>Fonction finale</li>
+</ol>
 <pre class="r"><code>Generation_de_resumes &lt;- function(urlpage, user_agent) {
   clean_html &lt;- get_page(urlpage, user_agent)
   page &lt;- read_html(clean_html)
 
   details &lt;- extraire_details_match(page)
-  formations &lt;- extraire_formation2(page)
-  minutes &lt;- extract_minutes(page)
+  formations &lt;- extraire_formation(page)
 
-  # Construction des moments forts
-  moments_forts &lt;- paste0(
-    &quot;À la minute &quot;, statistiques_buts$Minutes, &quot; &quot;,
-    statistiques_buts$Clubs, &quot; a trouvé le chemin des filets avec un but signé &quot;,
-    statistiques_buts$Buteur, &quot; grâce à une passe décisive de &quot;,
-    statistiques_buts$Passeur, &quot;.&quot;
-  )
-  
-  moments_forts &lt;- paste(moments_forts, collapse = &quot; &quot;)
+  # Initialisation explicite
+  formation_home &lt;- formations$formation_home
+  formation_away &lt;- formations$formation_away
 
-  # Génération du résumé final
   resume &lt;- Resum.match(
     compet = details$compet,
     Stade = details$stadium,
-    T.away = details$T.away,
-    T.home = details$T.home,
+    T.away = details$away_team,
+    T.home = details$home_team,
     result = details$result,
     spec = details$spectators,
-    formation_home = paste(formations$formation_home, collapse = &quot;, &quot;),
-    formation_away = paste(formations$formation_away, collapse = &quot;, &quot;),
-    liste_buteurs = statistiques_buts$Buteur,
-    liste_passeurs = statistiques_buts$Passeur,
-    liste_clubs = statistiques_buts$Clubs,
-    liste_minutes = statistiques_buts$Minutes
-  )
-  
-  # Ajout des moments forts au résumé
-  resume &lt;- paste(resume, &quot;\nVoici les moments forts du match :&quot;, moments_forts)
-  
-  return(resume)
-}
-
-# Test de la fonction
-user_agent = user_agent(&quot;Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:132.0) Gecko/20100101 Firefox/132.0&quot;)
-urlpage = &quot;https://www.transfermarkt.fr/spielbericht/index/spielbericht/4437897&quot;  # Remplacer par l&#39;URL du match
-Fonction_Finale = Generation_de_resumes(urlpage, user_agent)
-cat(Fonction_Finale)</code></pre>
-<pre><code>## Dans le cadre de la compétition Championnat National , le match opposant Dijon FCO à LB Châteauroux s&#39;est déroulé à Stade Gaston-Gérard , devant une foule de 3.654 spect. spectateurs. Ce match s&#39;est soldé sur le score de 4:0(1:0) . L&#39;équipe de Dijon FCO s&#39;est présentée en Dijon FCO, Équipe de départ: 4-3-1-2 , tandis que les hommes de LB Châteauroux étaient disposés en LB Châteauroux, Équipe de départ: 4-3-3 offensively-minded . Voici les moments forts du match : À la minute  , c&#39;est Abdelhak Belahmeur qui a inscrit un magnifique but. À la minute  , c&#39;est Edgar Delbos qui a inscrit un magnifique but. 
-## 
-## Ce match nous a offert 90 minutes de divertissements et nous avons hâte de suivre ces deux équipes pour la suite de la saison. 
-## Voici les moments forts du match : À la minute   a trouvé le chemin des filets avec un but signé Abdelhak Belahmeur grâce à une passe décisive de Non spécifié. À la minute   a trouvé le chemin des filets avec un but signé Edgar Delbos grâce à une passe décisive de Non spécifié.</code></pre>
-<pre class="r"><code># Fonction d&#39;extraction des minutes à partir de la frise
-extract_minutes &lt;- function(style) {
-  if (grepl(&quot;left:&quot;, style)) {
-    percent &lt;- as.numeric(sub(&quot;.*left: ([0-9.]+)%;.*&quot;, &quot;\\1&quot;, style))
-    return(round((percent * 90) / 100, 0))  # Conversion du pourcentage en minute
-  } else {
-    return(NA)
-  }
-}
-
-Generation_de_resumes &lt;- function(urlpage, user_agent) {
-  clean_html = get_page(urlpage, user_agent)
-  page = read_html(clean_html)
-  details = extraire_details_match(page)
-  but_minutes = extract_minutes(page)
-  but_stats = extraire_buteurs(page, but_minutes)
-  formations = extraire_formation2(page)
-  formation_home = formations$formation_home  # Formation équipe à domicile
-  formation_away = formations$formation_away  # Formation équipe à l&#39;extérieur
-  compet = details$compet
-  Stade = details$Stade
-  T.away = details$T.away
-  T.home = details$T.home
-  result = details$result
-  spec = details$spec
-  liste_buteurs = but_stats$liste_buteurs  # Liste des buteurs
-  liste_passeurs = but_stats$liste_passeurs  # Liste des passeurs
-  liste_clubs = but_stats$liste_clubs  # Liste des clubs
-  # Appel de la fonction Resum.match()
-  resume = Resum.match(
-    compet = compet,
-    Stade = Stade,
-    T.away = T.away,
-    T.home = T.home,
-    result = result,
-    spec = spec,
     formation_home = formation_home,
     formation_away = formation_away,
-    liste_buteurs = liste_buteurs,
-    liste_passeurs = liste_passeurs,
-    liste_clubs = liste_clubs,
-    liste_minutes = but_minutes  # Passer les minutes des buts
+    liste_buteurs = NULL,
+    liste_passeurs = NULL,
+    liste_clubs = NULL,
+    liste_minutes = NULL
   )
-  
-  return(resume)
-}
 
-# Test de la fonction
-user_agent = user_agent(&quot;Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:132.0) Gecko/20100101 Firefox/132.0&quot;)
-urlpage = &quot;https://www.transfermarkt.fr/spielbericht/index/spielbericht/4437897&quot;  # Remplacer par l&#39;URL du match
+  return(resume)
+}</code></pre>
+<ol start="6" style="list-style-type: decimal">
+<li>Execution de la fonction</li>
+</ol>
+<pre class="r"><code>user_agent = user_agent(&quot;Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:132.0) Gecko/20100101 Firefox/132.0&quot;)
+urlpage = &quot;https://www.transfermarkt.fr/spielbericht/index/spielbericht/4363891&quot;  # Remplacer par l&#39;URL du match
 Fonction_Finale = Generation_de_resumes(urlpage, user_agent)
 cat(Fonction_Finale)</code></pre>
-<pre><code>## Dans le cadre de la compétition Championnat National , le match opposant Dijon FCO à LB Châteauroux s&#39;est déroulé à  , devant une foule de 3.654 spect. spectateurs. Ce match s&#39;est soldé sur le score de 4:0(1:0) . L&#39;équipe de Dijon FCO s&#39;est présentée en Dijon FCO, Équipe de départ: 4-3-1-2 , tandis que les hommes de LB Châteauroux étaient disposés en LB Châteauroux, Équipe de départ: 4-3-3 offensively-minded . Au cours des 90 minutes, les deux équipes ont donné le meilleur d&#39;elles-mêmes, mais aucune d&#39;elles n&#39;a su se départager. Ce match se solde sur un score nul qui n&#39;arrange personne.
+<pre><code>## Dans le cadre de la compétition Ligue 1 , le match opposant Le Havre AC à RC Lens s&#39;est déroulé à Stade Océane , devant une foule de Arbitre: spectateurs. Ce match s&#39;est soldé sur le score de 1:2(1:1) . L&#39;équipe de Le Havre AC s&#39;est présentée en 1-1-1 , tout comme les hommes de RC Lens , également disposés en 1-1-1 . Au cours des 90 minutes, les deux équipes ont donné le meilleur d&#39;elles-mêmes, mais aucune d&#39;elles n&#39;a su se départager. Ce match se solde sur un score nul qui n&#39;arrange personne.
 ## 
-## Ce match nous a offert 90 minutes de divertissements et nous avons hâte de suivre ces deux équipes pour la suite de la saison.</code></pre>
+## Ce match nous à offert 90 minutes de divertissements et nous avons hâte de suivre ces deux équipes pour la suite de la saison.</code></pre>
 </div>
 
 
