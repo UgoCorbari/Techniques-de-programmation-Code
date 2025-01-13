@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Techniques de programmation : Résumés de matchs</title>
+  <title>Techniques de programmation : Résumé automatisé des rencontres footballistiques</title>
 
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="chrome=1">
@@ -20,7 +20,7 @@
     var SLIDE_CONFIG = {
       // Slide settings
       settings: {
-                title: 'Techniques de programmation : Résumés de matchs',
+                title: 'Techniques de programmation : Résumé automatisé des rencontres footballistiques',
                         useBuilds: true,
         usePrettify: true,
         enableSlideAreas: true,
@@ -30,7 +30,7 @@
       // Author information
       presenters: [
             {
-        name:  'CORBARI UGO SCHNEIDER HUGO' ,
+        name:  'CORBARI UGO - SCHNEIDER HUGO' ,
         company: '',
         gplus: '',
         twitter: '',
@@ -3150,13 +3150,13 @@ ul.task-list{list-style: none;}
 <li><strong>I. Introduction</strong>
 
 <ul>
-<li>Présentation du projet et objectifs.</li>
+<li>Présentation du projet et principaux objectifs.</li>
 </ul></li>
 <li><strong>II. Extraction des données pour un unique match</strong>
 
 <ul>
 <li>Récupération et nettoyage des données depuis le site Transfermarkt.</li>
-<li>Analyse des données principales : équipes, scores, spectateurs, stade.</li>
+<li>Analyse des données principales : équipes, score, spectateurs, date, stade, etc…</li>
 </ul></li>
 <li><strong>III. Création d’un résumé à partir des données collectées</strong>
 
@@ -3168,7 +3168,7 @@ ul.task-list{list-style: none;}
 
 <ul>
 <li>Assemblage des fonctions.</li>
-<li>Génération automatisée des résumés.</li>
+<li>Génération automatisée d’un résumé narratif détaillé pour n’importe quel match.</li>
 </ul></li>
 </ul>
 
@@ -3180,7 +3180,7 @@ ul.task-list{list-style: none;}
 <li><strong>Contexte :</strong>
 
 <ul>
-<li>Projet lié au cours &ldquo;Techniques de programmation&rdquo;.</li>
+<li>Projet lié à l’Unité d’enseignements &ldquo;Techniques de programmation&rdquo;.</li>
 <li>Développement d’un programme générant des <strong>résumés de matchs de football</strong>.</li>
 <li>Utilisation des données du site <em>Transfermarkt</em>.</li>
 </ul></li>
@@ -3189,25 +3189,17 @@ ul.task-list{list-style: none;}
 <ul>
 <li>Automatiser la récupération, l’analyse, et la structuration des données pour produire un résumé narratif détaillé.</li>
 </ul></li>
-<li><strong>Extraction des données :</strong>
+<li><strong>Extraction et analyse des données :</strong>
 
 <ul>
-<li>Configurer un <strong>User-Agent</strong> pour accéder aux pages.</li>
-<li>Nettoyer et structurer les données HTML.</li>
+<li>Configureration d’un <strong>User-Agent</strong> pour accéder aux pages ciblées.</li>
+<li>Nettoyage et structuration descdonnées HTML.</li>
+<li>Identification des équipes, du score, des buteurs, et des moments clés.</li>
 </ul></li>
-<li><strong>Analyse des données :</strong>
-
-<ul>
-<li>Identifier les équipes, scores, buteurs, et moments clés.</li>
-</ul></li>
-<li><strong>Génération du résumé :</strong>
+<li><strong>Génération du résumé et automatisation :</strong>
 
 <ul>
 <li>Produire un résumé narratif automatique pour n’importe quel match.</li>
-</ul></li>
-<li><strong>Automatisation :</strong>
-
-<ul>
 <li>Rendre le processus entièrement automatisé et réutilisable.</li>
 </ul></li>
 </ul>
@@ -3224,8 +3216,8 @@ ul.task-list{list-style: none;}
 <li><strong>Structure de la page web ciblée.</strong>
 
 <ul>
-<li>Plusieurs encadrés :</li>
-<li>Encadré 1 : Informations clées telles que la compétition dans laquelle se déroule le match, les équipes impliquées, les scores, le résultat final</li>
+<li>Plusieurs encadrés structurant la page web ciblée</li>
+<li>Encadré 1 : Informations clées telles que la compétition dans laquelle se déroule le match, les équipes impliquées ainsi que le résultat final</li>
 <li>Encadré 2 : Compositions des équipes</li>
 <li>Encadré 3 : Données liées aux buts marqués pendant le match, nom du buteur, nom du du passeur décisif, la minute à laquelle chaque but a été inscrit.</li>
 </ul></li>
@@ -3233,7 +3225,16 @@ ul.task-list{list-style: none;}
 
 </article></slide><slide class=""><hgroup><h2>III. Création d’un résumé à partir des données collectées</h2></hgroup><article  id="iii.-création-dun-résumé-à-partir-des-données-collectées" class="smaller ">
 
+<ul>
+<li><strong>Création d’un résumé narratif du match.</strong></li>
+</ul>
+
 </article></slide><slide class=""><hgroup><h2>IV. Automatisation du processus et fonction finale</h2></hgroup><article  id="iv.-automatisation-du-processus-et-fonction-finale" class="smaller ">
+
+<ul>
+<li><strong>Restructuration du code en une seule fonction afin d’automatiser le processus.</strong></li>
+<li><strong>Objectif final : Obtenir le résumé de n’importe quel match avec des statistiques complètes et pertinentes</strong></li>
+</ul>
 
 </article></slide><slide class=""><hgroup><h2>V. Conclusion du projet</h2></hgroup><article  id="v.-conclusion-du-projet" class="smaller ">
 

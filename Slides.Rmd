@@ -1,6 +1,6 @@
 ---
-title: "Techniques de programmation : Résumés de matchs"
-author: "CORBARI UGO SCHNEIDER HUGO"
+title: "Techniques de programmation : Résumé automatisé des rencontres footballistiques"
+author: "CORBARI UGO - SCHNEIDER HUGO"
 date: "2025-01-14"
 output: 
   ioslides_presentation:
@@ -11,11 +11,11 @@ output:
 ## Sommaire
 
 - **I. Introduction**
-  - Présentation du projet et objectifs.
+  - Présentation du projet et principaux objectifs.
   
 - **II. Extraction des données pour un unique match**
   - Récupération et nettoyage des données depuis le site Transfermarkt.
-  - Analyse des données principales : équipes, scores, spectateurs, stade.
+  - Analyse des données principales : équipes, score, spectateurs, date, stade, etc...
   
 - **III. Création d'un résumé à partir des données collectées**
   - Structuration des données extraites.
@@ -23,7 +23,7 @@ output:
   
 - **IV. Automatisation du processus et fonction finale**
   - Assemblage des fonctions.
-  - Génération automatisée des résumés.
+  - Génération automatisée d'un résumé narratif détaillé pour n'importe quel match.
 
 
 ## I. Introduction
@@ -31,24 +31,20 @@ output:
 ### Présentation du projet
 
 - **Contexte :**
-  - Projet lié au cours "Techniques de programmation".
+  - Projet lié à l'Unité d'enseignements "Techniques de programmation".
   - Développement d’un programme générant des **résumés de matchs de football**.
   - Utilisation des données du site _Transfermarkt_.
 
 - **Objectif principal :**
   - Automatiser la récupération, l’analyse, et la structuration des données pour produire un résumé narratif détaillé.
 
-- **Extraction des données :**
-   - Configurer un **User-Agent** pour accéder aux pages.
-   - Nettoyer et structurer les données HTML.
+- **Extraction et analyse des données :**
+   - Configureration d'un **User-Agent** pour accéder aux pages ciblées.
+   - Nettoyage et structuration descdonnées HTML.
+   - Identification des équipes, du score, des buteurs, et des moments clés.
 
-- **Analyse des données :**
-   - Identifier les équipes, scores, buteurs, et moments clés.
-
-- **Génération du résumé :**
+- **Génération du résumé et automatisation :**
    - Produire un résumé narratif automatique pour n’importe quel match.
-
-- **Automatisation :**
    - Rendre le processus entièrement automatisé et réutilisable.
 
 ## II. Extraction des données pour un unique match
@@ -57,14 +53,19 @@ output:
     - "Transfermarkt" est un site web allemand axé sur le football proposant des informations sur les résultats, les transferts ainsi que des statistiques.
     - L'un des 25 sites allemands les plus visités et l'un des principaux sites sportifs.
 - **Structure de la page web ciblée.** 
-    - Plusieurs encadrés :
-    - Encadré 1 : Informations clées telles que la compétition dans laquelle se déroule le match, les équipes impliquées, les scores, le résultat final
+    - Plusieurs encadrés structurant la page web ciblée
+    - Encadré 1 : Informations clées telles que la compétition dans laquelle se déroule le match, les équipes impliquées ainsi que le résultat final
     - Encadré 2 : Compositions des équipes
     - Encadré 3 : Données liées aux buts marqués pendant le match, nom du buteur, nom du du passeur décisif, la minute à laquelle chaque but a été inscrit.
     
 ## III. Création d'un résumé à partir des données collectées
 
+- **Création d'un résumé narratif du match.**
+
 ## IV. Automatisation du processus et fonction finale 
+
+- **Restructuration du code en une seule fonction afin d'automatiser le processus.**
+- **Objectif final : Obtenir le résumé de n'importe quel match avec des statistiques complètes et pertinentes**
 
 ## V. Conclusion du projet
 
