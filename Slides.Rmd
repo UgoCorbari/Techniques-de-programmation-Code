@@ -731,12 +731,39 @@ Generation_de_resumes <- function(urlpage, user_agent) {
 
 ## Test avec un autre lien pour obtenir le résumé d'un autre match
 
-```{r echo=FALSE}
+```{r echo=TRUE}
 user_agent = user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:132.0) Gecko/20100101 Firefox/132.0")
 urlpage = "https://www.transfermarkt.fr/spielbericht/index/spielbericht/4402014"  # Nouveau match
 Fonction_Finale = Generation_de_resumes(urlpage, user_agent)
 cat(Fonction_Finale)
 ```
+
+```{r echo=FALSE}
+resume <- "Dans le cadre de la compétition Championnat National 3 - Groupe H , le match opposant Racing Strasbourg B à Jura Dolois Football s'est déroulé à Parc des Sports , devant une foule de 48 spect. spectateurs. Ce match s'est soldé sur le score de 1:1(1:1) . L'équipe de Racing Strasbourg B s'est présentée en Racing Strasbourg B , tandis que les hommes de Jura Dolois Football étaient disposés en Jura Dolois Football . Au cours des 90 minutes, les deux équipes ont donné le meilleur d'elles-mêmes, mais aucune d'elles n'a su se départager. Ce match se solde sur un score nul qui n'arrange personne.
+
+Ce match nous à offert 90 minutes de divertissements et nous avons hâte de suivre ces deux équipes pour la suite de la saison."
+
+# Diviser le résumé en sections clés
+resume_parts <- data.frame(
+  "Section" = c(
+    "Introduction",
+    "Événements marquants",
+    "Conclusion"
+  ),
+  "Détails" = c(
+    "Dans le cadre de la compétition Championnat National 3 - Groupe H , le match opposant Racing Strasbourg B à Jura Dolois Football s'est déroulé à Parc des Sports , devant une foule de 48 spect. spectateurs. Ce match s'est soldé sur le score de 1:1(1:1) .",
+    "L'équipe de Racing Strasbourg B s'est présentée en Racing Strasbourg B , tandis que les hommes de Jura Dolois Football étaient disposés en Jura Dolois Football . Au cours des 90 minutes, les deux équipes ont donné le meilleur d'elles-mêmes, mais aucune d'elles n'a su se départager. Ce match se solde sur un score nul qui n'arrange personne.",
+    "Ce match nous à offert 90 minutes de divertissements et nous avons hâte de suivre ces deux équipes pour la suite de la saison.."
+  )
+)
+
+# Affichage du tableau
+library(knitr)
+kable(resume_parts, caption = "Résumé narratif du match")
+
+```
+
+
 
 ## V. Conclusion du projet
 
