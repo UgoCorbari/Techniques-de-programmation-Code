@@ -3343,12 +3343,48 @@ cat(sprintf(&quot;Compétition: %s\nMatch: %s %s %s\nSpectateurs: %s\nDate et he
 
 <p>Sous ce premier encadré, le site présente une frise chronologique des événements dans laquelle apparaissent les minutes auxquelles ont lieu les buts, une information qui nous sera essentielle pour le résumé du match.</p>
 
+<pre class = 'prettyprint lang-r'># Extraction des minutes en fonction de leurs positions dans la frise 
+# La frise présente tous les évènements du match, tels que les changements, les buts ou encore les cartons. 
+# On se concentre dans notre cas sur les buts 
+# Objectif : Filtrer uniquement les événements de buts
+but_elements &lt;- page %&gt;%
+  html_nodes(&quot;.sb-leiste-ereignis span.sb-sprite.sb-tor&quot;) %&gt;% html_nodes(xpath = &quot;..&quot;) %&gt;%html_attr(&quot;style&quot;)                                          
+# Les éléments de la frise sont définis en fonction de leurs positions, on convertit alors la position en minutes
+extract_minutes &lt;- function(style) {
+  if (grepl(&quot;left:&quot;, style)) {
+    percent &lt;- as.numeric(sub(&quot;.*left: ([0-9.]+)%;.*&quot;, &quot;\\1&quot;, style))
+    return(round((percent * 90) / 100, 0))  # Calcul de la minute en fonction du pourcentage
+  } else {
+    return(NA)
+  }
+}
+
+but_minutes &lt;- sapply(but_elements, extract_minutes)
+print(but_minutes)</pre>
+
 <pre >## left: 25.555555555556%; left: 67.777777777778%; 
 ##                      23                      61</pre>
 
 </article></slide><slide class=""><hgroup><h2>Données de l’encadré 2</h2></hgroup><article  id="données-de-lencadré-2" class="smaller ">
 
 <p>Le deuxième encadré permet d’accéder aux compositions des équipes, une information pertinente pour comprendre la physionomie des matchs.</p>
+
+<pre class = 'prettyprint lang-r'># Fonction pour extraire les joueurs par poste et le manager pour une équipe spécifique
+extraire.joueurs &lt;- function(page, section_xpath) {
+  section &lt;- page %&gt;% html_nodes(xpath = section_xpath)
+  postes &lt;- c(&quot;Gardien de but&quot;, &quot;Défenseurs&quot;, &quot;Milieux de terrain&quot;, &quot;Attaquants&quot;, &quot;Manager&quot;)
+  data &lt;- list()
+  for (poste in postes) {
+    poste_xpath &lt;- sprintf(&quot;.//td[b[text()=&#39;%s&#39;]]/following-sibling::td&quot;, poste)
+    joueurs &lt;- section %&gt;% html_nodes(xpath = poste_xpath) %&gt;% html_text(trim = TRUE)
+    if (length(joueurs) == 0) {
+      data[[poste]] &lt;- &quot;Non disponible&quot;
+    } else {
+      data[[poste]] &lt;- joueurs
+    }
+  }
+  return(data)
+}</pre>
 
 <pre >## 
 ## Formation équipe à domicile :  4-3-3</pre>

@@ -139,9 +139,10 @@ cat(sprintf("Compétition: %s\nMatch: %s %s %s\nSpectateurs: %s\nDate et heure: 
 
 Sous ce premier encadré, le site présente une frise chronologique des événements dans laquelle apparaissent les minutes auxquelles ont lieu les buts, une information qui nous sera essentielle pour le résumé du match.
 
-```{r echo=FALSE}
-# Extraire les minutes en fonction de leurs positions dans la frise
-# La frise présente tous les évènements du match, tels que les changements, les buts ou encore les cartons. On se concentre dans notre cas sur les buts 
+```{r echo=TRUE}
+# Extraction des minutes en fonction de leurs positions dans la frise 
+# La frise présente tous les évènements du match, tels que les changements, les buts ou encore les cartons. 
+# On se concentre dans notre cas sur les buts 
 # Objectif : Filtrer uniquement les événements de buts
 but_elements <- page %>%
   html_nodes(".sb-leiste-ereignis span.sb-sprite.sb-tor") %>% html_nodes(xpath = "..") %>%html_attr("style")                                          
@@ -162,6 +163,27 @@ print(but_minutes)
 ## Données de l'encadré 2 
 
 Le deuxième encadré permet d'accéder aux compositions des équipes, une information pertinente pour comprendre la physionomie des matchs.
+
+
+```{r echo=TRUE}
+# Fonction pour extraire les joueurs par poste et le manager pour une équipe spécifique
+extraire.joueurs <- function(page, section_xpath) {
+  section <- page %>% html_nodes(xpath = section_xpath)
+  postes <- c("Gardien de but", "Défenseurs", "Milieux de terrain", "Attaquants", "Manager")
+  data <- list()
+  for (poste in postes) {
+    poste_xpath <- sprintf(".//td[b[text()='%s']]/following-sibling::td", poste)
+    joueurs <- section %>% html_nodes(xpath = poste_xpath) %>% html_text(trim = TRUE)
+    if (length(joueurs) == 0) {
+      data[[poste]] <- "Non disponible"
+    } else {
+      data[[poste]] <- joueurs
+    }
+  }
+  return(data)
+}
+```
+
 
 ```{r echo=FALSE, class.source="code"}
 # Fonction pour extraire les joueurs par poste et le manager pour une équipe spécifique
