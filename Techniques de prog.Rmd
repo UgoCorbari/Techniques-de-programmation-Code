@@ -482,7 +482,6 @@ print(statistiques_buts)
 formations <- extraire_formation(page)
 formation_home <- formations$formation_home
 formation_away <- formations$formation_away
-formations <- extraire_formation(page)
 statistiques_buts <- extraire_buteurs(page, but_minutes)
 
 # Vérifier si les variables sont extraites correctement
@@ -568,11 +567,11 @@ Generation_de_resumes <- function(urlpage, user_agent) {
   formation_home = formations$formation_home
   formation_away = formations$formation_away
   compet = details$compet
-  Stade = details$Stade
+  Stade = details$stadium
   T.away = details$T.away
   T.home = details$T.home
   result = details$result
-  spec = details$spec
+  spec = details$spectators
   liste_buteurs = but_stats$liste_buteurs
   liste_passeurs = but_stats$liste_passeurs
   liste_clubs = but_stats$liste_clubs
