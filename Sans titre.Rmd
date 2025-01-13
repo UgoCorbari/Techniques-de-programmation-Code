@@ -219,14 +219,8 @@ print(statistiques_buts)
 Une fois les données extraites il est possible de créer un résumé naratif du match:
 
 ```{r}
-# Vérifiez que formation_home et formation_away sont bien définis avant l'appel
-formations <- extraire_formation(page)  # Extrait les formations à partir de la page
+#Création du résumé narratif du match
 
-# Initialisez les variables formation_home et formation_away
-formation_home <- formations$formation_home
-formation_away <- formations$formation_away
-
-# Création du résumé narratif du match
 Resum.match <- function(compet, Stade, T.away, T.home, result, spec, formation_home, formation_away, liste_buteurs, liste_passeurs, liste_clubs, liste_minutes) {
   resume = paste(
     "Dans le cadre de la compétition", compet, ", le match opposant", T.home, "à", T.away,
@@ -242,9 +236,9 @@ Resum.match <- function(compet, Stade, T.away, T.home, result, spec, formation_h
     resume <- paste0(resume, " Voici les moments forts du match : ")
     
     for (i in 1:length(liste_buteurs)) {
-      minute <- liste_minutes[i]
-      buteur <- liste_buteurs[i]
-      passeur <- liste_passeurs[i]
+      minute <- liste_minutes[i]  
+      buteur <- liste_buteurs[i]  
+      passeur <- liste_passeurs[i] 
       club <- liste_clubs[i]
       
       if (passeur != "Non spécifié") {
@@ -255,7 +249,7 @@ Resum.match <- function(compet, Stade, T.away, T.home, result, spec, formation_h
       } else {
         event_text <- paste("À la minute", minute, ", c'est", buteur, "qui a inscrit un magnifique but.")
       }
-      resume <- paste0(resume, event_text)
+      resume <- paste0(resume, event_text) 
     }
   } else {
     resume <- paste0(resume, " Au cours des 90 minutes, les deux équipes ont donné le meilleur d'elles-mêmes, mais aucune d'elles n'a su se départager. Ce match se solde sur un score nul qui n'arrange personne.")
@@ -264,7 +258,7 @@ Resum.match <- function(compet, Stade, T.away, T.home, result, spec, formation_h
   return(resume)
 }
 
-# Appel de la fonction Resum.match
+
 resume <- Resum.match(
   compet = compet,
   Stade = Stade,
@@ -280,8 +274,8 @@ resume <- Resum.match(
   liste_minutes = liste_minutes
 )
 
-# Affichage du résumé
 cat(resume)
+
 
 ```
 
@@ -401,35 +395,21 @@ statistiques_buts <- data.frame(
 5)    Fonction finale 
 
 ```{r}
-Generation_de_resumes <- function(urlpage, user_agent) {
-  clean_html <- get_page(urlpage, user_agent)
-  page <- read_html(clean_html)
-
-  details <- extraire_details_match(page)
-  formations <- extraire_formation(page)
-
-  # Initialisation explicite
-  formation_home <- formations$formation_home
-  formation_away <- formations$formation_away
-
-  resume <- Resum.match(
-    compet = details$compet,
-    Stade = details$stadium,
-    T.away = details$away_team,
-    T.home = details$home_team,
-    result = details$result,
-    spec = details$spectators,
-    formation_home = formation_home,
-    formation_away = formation_away,
-    liste_buteurs = NULL,
-    liste_passeurs = NULL,
-    liste_clubs = NULL,
-    liste_minutes = NULL
-  )
-
+Generation_de_resumes = function(urlpage, user_agent) {
+  clean_html = get_page(urlpage, user_agent)
+  page = read_html(clean_html)
+  
+  details = extraire_details_match(page)
+  but_minutes = extraire_but_minutes(page)
+  but_stats = extraire_buteurs(page, but_minutes)
+  
+ formations = extraire_formation(page)
+  formation_home = formations$formation_home  # Formation équipe à domicile
+  formation_away = formations$formation_away  # Formation équipe à l'extérieur
+  
+  resume = Resum.match(compet, Stade, T.away, T.home, result, spec, but_events, formation_home, formation_away, liste_buteurs, liste_passeurs, liste_clubs, liste_minutes, clubs, clubs.but)
   return(resume)
 }
-
 
 ```
 

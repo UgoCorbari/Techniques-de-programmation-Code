@@ -9,7 +9,7 @@ output: ioslides_presentation
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
-## Description du projet
+## Introduction 
 
 Pour ce projet lié à l'Unité d'Enseignement "Techniques de programmation", nous avons décidé de développer un programme capable de générer des résumés de matchs de football en se basant sur les résultats disponibles sur le site "Transfermarkt".
 
@@ -19,7 +19,7 @@ L'objectif principal est ainsi de récupérer les données d'un match spécifiqu
 
 Enfin, nous veillons à automatiser ce processus afin que notre programme puisse produire un résumé détaillé pour n'importe quel match de football disponible sur la plateforme. Ce projet nous a permis de consolider notre compréhension des techniques de web scraping tout en appliquant les concepts appris à travers le cours de manière concrète.
 
-## Slide with Bullets
+## Extractions des données pour un match
 
 - Bullet 1
 - Bullet 2
