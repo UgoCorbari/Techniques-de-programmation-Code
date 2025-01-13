@@ -104,15 +104,12 @@ extract_minutes <- function(style) {
 
 but_minutes <- sapply(but_elements, extract_minutes)
 print(but_minutes)
-
-
 ```
 
 Le deuxième encadré permet d'accéder aux compositions des équipes, une information pertinente pour comprendre la physionomie des matchs.
 
 ```{r}
 # Fonction pour extraire les joueurs par poste et le manager pour une équipe spécifique
-
 extraire.joueurs <- function(page, section_xpath) {
   section <- page %>% html_nodes(xpath = section_xpath)
   postes <- c("Gardien de but", "Défenseurs", "Milieux de terrain", "Attaquants", "Manager")
@@ -175,47 +172,55 @@ cat("Formation équipe à l'extérieur : ", formations$formation_away, "\n")
 Le troisième encadré joue également un rôle crucial car il détaille les données liées aux buts marqués pendant le match. Il fournit des informations telles que le nom du buteur, celui du passeur décisif, ainsi que la minute à laquelle chaque but a été inscrit. Ces données sont particulièrement pertinentes pour enrichir et personnaliser le résumé que nous souhaitons élaborer, en mettant nottamment en avant les moments clés du match.
 
 ```{r}
-# Extraction de données de l'encadré 3 
+# Fonction d'extraction de données de l'encadré 3 
+extraire_buteurs = function(page, but_minutes) {
+  # Extraire les informations pertinentes pour chaque événement
+  but_events <- page %>% html_nodes(".sb-aktion-aktion") %>% html_text(trim = TRUE)
+  buteurs <- page %>% html_nodes(".sb-aktion-aktion a.wichtig") %>% html_text(trim = TRUE)
+  passeurs <- page %>% html_nodes(".sb-aktion-aktion .sb-aktion-detail") %>% html_text(trim = TRUE)
+  
+  # Initialisation des listes
+  liste_buteurs <- c()
+  liste_passeurs <- c()
+  liste_minutes <- c()
+  liste_evenements <- c()
 
-but_details <- page %>%html_nodes(".sb-aktion-aktion") %>%html_text(trim = TRUE)              # Evenements liés aux buts
+  for (i in seq_along(but_events)) {
+    # Vérifier si l'événement est un but
+    if (grepl("but", tolower(but_events[i]), fixed = TRUE)) {
+      # Extraire les détails du buteur, passeur et événement
+      buteur_match <- buteurs[i]
+      passeur_match <- ifelse(grepl("Passe décisive:", passeurs[i]), 
+                              sub(".*Passe décisive: (.+)", "\\1", passeurs[i]), 
+                              "Non spécifié")
+      minute_match <- but_minutes[i]
+      evenement_match <- but_events[i]
+      
+      # Ajouter les informations extraites dans les listes
+      liste_buteurs <- c(liste_buteurs, buteur_match)
+      liste_passeurs <- c(liste_passeurs, passeur_match)
+      liste_minutes <- c(liste_minutes, minute_match)
+      liste_evenements <- c(liste_evenements, evenement_match)
+    }
+  }
 
-but_events <- grep("But de la saison", but_details, value = TRUE)                             # Filtrage des données 
-
-buteurs <- page %>%html_nodes(".sb-aktion-aktion a.wichtig") %>%html_text(trim = TRUE)        # Extraction des buteurs
-
-clubs.but <- page %>% html_nodes(".sb-aktion-wappen img") %>%html_attr("alt")                 # Extraction du club du buteur        
-
-#Extraction du club auquel appartient le buteur à partir du logo 
-
-
-liste_buteurs <- c()                                                                   # Initialisation des listes pour les buteurs 
-liste_passeurs <- c()                                                                  # Initialisation des listes pour les passeurs
-liste_minutes <- c()                                                                   # Initialisation des listes pour les minutes
-liste_clubs <- c()                                                                     # Initialisation des listes pour les clubs
-
-# Fonction d'extraction des statistiques
-for (i in seq_along(but_events)) {
-  buteur_match <- sub(",.*", "", but_events[i])                                        
-  passeur_match <- ifelse(grepl("Passe décisive:", but_events[i]),
-                          sub(".*Passe décisive: (.+?),.*", "\\1", but_events[i]),          
-                          "Non spécifié")                                                   
-  liste_buteurs <- c(liste_buteurs, buteur_match) 
-  liste_passeurs <- c(liste_passeurs, passeur_match)
-  liste_minutes <- c(liste_minutes, but_minutes[i])
-  liste_clubs <- c(liste_clubs,clubs.but[i])
+  # Création du data frame
+  statistiques_buts <- data.frame(
+    Minute = liste_minutes,
+    Buteur = liste_buteurs,
+    Passeur = liste_passeurs,
+    Evenement = liste_evenements,
+    stringsAsFactors = FALSE
+  )
+  
+  return(statistiques_buts)
 }
 
-# Création d'un data frame pour rassembler les informations
-statistiques_buts <- data.frame(
-  Clubs = liste_clubs,
-  Minutes = liste_minutes,
-  Buteur = liste_buteurs,
-  Passeur = liste_passeurs,
-  Details = but_events,
-  stringsAsFactors = FALSE
-)
-
+statistiques_buts <- extraire_buteurs(page, but_minutes)
 print(statistiques_buts)
+
+passeurs <- page %>% html_nodes(".sb-aktion-aktion .sb-aktion-detail") %>% html_text(trim = TRUE)
+print(passeurs)  # Vérifier ce que vous obtenez dans la variable passeurs
 
 ```
 
@@ -224,25 +229,24 @@ print(statistiques_buts)
 Une fois les données extraites il est possible de créer un résumé naratif du match:
 
 ```{r}
-# Vérifiez que formation_home et formation_away sont bien définis avant l'appel
-formations <- extraire_formation(page)  # Extrait les formations à partir de la page
-
-# Initialisez les variables formation_home et formation_away
-formation_home <- formations$formation_home
-formation_away <- formations$formation_away
 
 # Création du résumé narratif du match
 Resum.match <- function(compet, Stade, T.away, T.home, result, spec, formation_home, formation_away, liste_buteurs, liste_passeurs, liste_clubs, liste_minutes) {
+  # Introduction du résumé
   resume = paste(
     "Dans le cadre de la compétition", compet, ", le match opposant", T.home, "à", T.away,
     "s'est déroulé à", Stade, ", devant une foule de", spec, "spectateurs. Ce match s'est soldé sur le score de", result, ".",
     "L'équipe de", T.home, "s'est présentée en", formation_home
   )
+  
+  # Ajouter la formation de l'équipe adverse
   if (formation_home == formation_away) {
     resume = paste(resume, ", tout comme les hommes de", T.away, ", également disposés en", formation_away, ".")
   } else {
     resume = paste(resume, ", tandis que les hommes de", T.away, "étaient disposés en", formation_away, ".")
   }
+
+  # Si des buts ont été marqués, ajouter les événements de but
   if (length(liste_buteurs) > 0) {
     resume <- paste0(resume, " Voici les moments forts du match : ")
     
@@ -252,6 +256,7 @@ Resum.match <- function(compet, Stade, T.away, T.home, result, spec, formation_h
       passeur <- liste_passeurs[i]
       club <- liste_clubs[i]
       
+      # Gestion de la passe décisive
       if (passeur != "Non spécifié") {
         event_text <- paste(
           "À la minute", minute, club, "a trouvé le chemin des filets avec un but signé", buteur,
@@ -260,33 +265,20 @@ Resum.match <- function(compet, Stade, T.away, T.home, result, spec, formation_h
       } else {
         event_text <- paste("À la minute", minute, ", c'est", buteur, "qui a inscrit un magnifique but.")
       }
-      resume <- paste0(resume, event_text)
+      
+      # Ajouter l'événement au résumé
+      resume <- paste0(resume, event_text, " ")
     }
   } else {
     resume <- paste0(resume, " Au cours des 90 minutes, les deux équipes ont donné le meilleur d'elles-mêmes, mais aucune d'elles n'a su se départager. Ce match se solde sur un score nul qui n'arrange personne.")
   }
-  resume <- paste0(resume, "\n\nCe match nous à offert 90 minutes de divertissements et nous avons hâte de suivre ces deux équipes pour la suite de la saison.")
+
+  # Conclusion du résumé
+  resume <- paste0(resume, "\n\nCe match nous a offert 90 minutes de divertissements et nous avons hâte de suivre ces deux équipes pour la suite de la saison.")
+
   return(resume)
 }
 
-# Appel de la fonction Resum.match
-resume <- Resum.match(
-  compet = compet,
-  Stade = Stade,
-  T.away = T.away,
-  T.home = T.home,
-  result = result,
-  spec = spec,
-  formation_home = formation_home,
-  formation_away = formation_away,
-  liste_buteurs = liste_buteurs,
-  liste_passeurs = liste_passeurs,
-  liste_clubs = liste_clubs,
-  liste_minutes = liste_minutes
-)
-
-# Affichage du résumé
-cat(resume)
 
 ```
 
@@ -330,8 +322,8 @@ extraire_details_match = function(page) {
   
   details = list(
     compet = compet, 
-    home_team = T.home, 
-    away_team = T.away, 
+    T.home = T.home, 
+    T.away = T.away, 
     result = result, 
     spectators = spec, 
     match_date = date, 
@@ -341,69 +333,65 @@ extraire_details_match = function(page) {
 }
 ```
 
-3)    Fonction pour extraire les minutes des buts
+3)    Modification de la fonction d'extraction des formations
+
+Après avoir examiné d'autres pages rattachés à des matchs de football, nous avons remarqué que la structure de l'encadré présentant les formatons peut prendre une seconde forme. Il s'agit alors de modifier la fonction extraire_formation pour prendre en compte cette possibilité :
 
 ```{r}
-extraire_but_minutes = function(page) {
-  but_elements <- page %>% 
-    html_nodes(".sb-leiste-ereignis span.sb-sprite.sb-tor") %>% 
-    html_nodes(xpath = "..") %>% html_attr("style")
+extraire_formation2 <- function(page) {
+  # XPaths pour les sections avec les données de formation
+  section.Home <- "//div[contains(@class, 'large-6') and contains(@class, 'aufstellung-box')]" 
+  section.Away <- "//div[contains(@class, 'large-6') and not(contains(@class, 'aufstellung-box'))]" 
   
-  extract_minutes <- function(style) {
-    if (grepl("left:", style)) {
-      percent <- as.numeric(sub(".*left: ([0-9.]+)%;.*", "\\1", style))
-      return(round((percent * 90) / 100, 0))
-    } else {
-      return(NA)
+  # Fonction pour extraire la formation directement si elle est présente sous forme de texte
+  extraire_formation_directe <- function(section) {
+    formation <- section %>% html_nodes(xpath = ".//div[contains(@class, 'aufstellung-unterueberschrift')]") %>% html_text(trim = TRUE)
+    
+    if(length(formation) > 0) {
+      return(formation)
     }
+    return(NULL)
+  }
+
+  # Extraire la formation directement si disponible pour chaque équipe
+  formation_home <- extraire_formation_directe(page %>% html_nodes(xpath = section.Home))
+  formation_away <- extraire_formation_directe(page %>% html_nodes(xpath = section.Away))
+  
+  # Si la formation est absente sous forme de texte, extraire les joueurs et calculer la formation
+  if (is.null(formation_home)) {
+    Home.data <- extraire.joueurs(page, section.Home)
+    nombre_joueurs_home <- sapply(Home.data, Nb.joueurs.lignes)
+    formation_home <- paste(
+      nombre_joueurs_home["Défenseurs"], 
+      nombre_joueurs_home["Milieux de terrain"], 
+      nombre_joueurs_home["Attaquants"], sep = "-"
+    )
   }
   
-  but_minutes <- sapply(but_elements, extract_minutes)
-  return(but_minutes)
-}
-```
+  if (is.null(formation_away)) {
+    Away.data <- extraire.joueurs(page, section.Away)
+    nombre_joueurs_away <- sapply(Away.data, Nb.joueurs.lignes)
+    formation_away <- paste(
+      nombre_joueurs_away["Défenseurs"], 
+      nombre_joueurs_away["Milieux de terrain"], 
+      nombre_joueurs_away["Attaquants"], sep = "-"
+    )
+  }
 
-4)    Fonction pour extraire les buteurs 
-
-```{r}
-extraire_buteurs = function(page, but_minutes) {
-  but_events <- page %>% html_nodes(".sb-aktion-aktion") %>% html_text(trim = TRUE)
-  buteurs <- page %>% html_nodes(".sb-aktion-aktion a.wichtig") %>% html_text(trim = TRUE)
-  clubs.but <- page %>% html_nodes(".sb-aktion-wappen img") %>% html_attr("alt")
-  
-  liste_buteurs <- c()
-  liste_passeurs <- c()
-  liste_minutes <- c()
-  liste_clubs <- c()
-  
-  for (i in seq_along(but_events)) {
-  buteur_match <- sub(",.*", "", but_events[i])                                        
-  passeur_match <- ifelse(grepl("Passe décisive:", but_events[i]),
-                          sub(".*Passe décisive: (.+?),.*", "\\1", but_events[i]),          
-                          "Non spécifié")                                                   
-  liste_buteurs <- c(liste_buteurs, buteur_match) 
-  liste_passeurs <- c(liste_passeurs, passeur_match)
-  liste_minutes <- c(liste_minutes, but_minutes[i])
-  liste_clubs <- c(liste_clubs,clubs.but[i])
+  # Retourner les formations
+  return(list(formation_home = formation_home, formation_away = formation_away))
 }
 
-# Création d'un data frame pour rassembler les informations
-statistiques_buts <- data.frame(
-  Clubs = liste_clubs,
-  Minutes = liste_minutes,
-  Buteur = liste_buteurs,
-  Passeur = liste_passeurs,
-  Details = but_events,
-  stringsAsFactors = FALSE
-)
-  return(statistiques_buts)
-}
- 
+# Exemple d'appel de la fonction
+formations <- extraire_formation(page)
 
+# Afficher les résultats
+cat("\nFormation équipe à domicile : ", formations$formation_home, "\n") 
+cat("Formation équipe à l'extérieur : ", formations$formation_away, "\n")
 
 ```
 
-5)    Fonction finale 
+## Fonction finale 
 
 ```{r}
 Generation_de_resumes <- function(urlpage, user_agent) {
@@ -411,39 +399,101 @@ Generation_de_resumes <- function(urlpage, user_agent) {
   page <- read_html(clean_html)
 
   details <- extraire_details_match(page)
-  formations <- extraire_formation(page)
+  formations <- extraire_formation2(page)
+  minutes <- extract_minutes(page)
 
-  # Initialisation explicite
-  formation_home <- formations$formation_home
-  formation_away <- formations$formation_away
+  # Construction des moments forts
+  moments_forts <- paste0(
+    "À la minute ", statistiques_buts$Minutes, " ",
+    statistiques_buts$Clubs, " a trouvé le chemin des filets avec un but signé ",
+    statistiques_buts$Buteur, " grâce à une passe décisive de ",
+    statistiques_buts$Passeur, "."
+  )
+  
+  moments_forts <- paste(moments_forts, collapse = " ")
 
+  # Génération du résumé final
   resume <- Resum.match(
     compet = details$compet,
     Stade = details$stadium,
-    T.away = details$away_team,
-    T.home = details$home_team,
+    T.away = details$T.away,
+    T.home = details$T.home,
     result = details$result,
     spec = details$spectators,
-    formation_home = formation_home,
-    formation_away = formation_away,
-    liste_buteurs = NULL,
-    liste_passeurs = NULL,
-    liste_clubs = NULL,
-    liste_minutes = NULL
+    formation_home = paste(formations$formation_home, collapse = ", "),
+    formation_away = paste(formations$formation_away, collapse = ", "),
+    liste_buteurs = statistiques_buts$Buteur,
+    liste_passeurs = statistiques_buts$Passeur,
+    liste_clubs = statistiques_buts$Clubs,
+    liste_minutes = statistiques_buts$Minutes
   )
-
+  
+  # Ajout des moments forts au résumé
+  resume <- paste(resume, "\nVoici les moments forts du match :", moments_forts)
+  
   return(resume)
 }
 
-
-```
-
-6)    Execution de la fonction
-
-```{r}
+# Test de la fonction
 user_agent = user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:132.0) Gecko/20100101 Firefox/132.0")
-urlpage = "https://www.transfermarkt.fr/spielbericht/index/spielbericht/4363891"  # Remplacer par l'URL du match
+urlpage = "https://www.transfermarkt.fr/spielbericht/index/spielbericht/4437897"  # Remplacer par l'URL du match
 Fonction_Finale = Generation_de_resumes(urlpage, user_agent)
 cat(Fonction_Finale)
 
+
 ```
+```{r}
+# Fonction d'extraction des minutes à partir de la frise
+extract_minutes <- function(style) {
+  if (grepl("left:", style)) {
+    percent <- as.numeric(sub(".*left: ([0-9.]+)%;.*", "\\1", style))
+    return(round((percent * 90) / 100, 0))  # Conversion du pourcentage en minute
+  } else {
+    return(NA)
+  }
+}
+
+Generation_de_resumes <- function(urlpage, user_agent) {
+  clean_html = get_page(urlpage, user_agent)
+  page = read_html(clean_html)
+  details = extraire_details_match(page)
+  but_minutes = extract_minutes(page)
+  but_stats = extraire_buteurs(page, but_minutes)
+  formations = extraire_formation2(page)
+  formation_home = formations$formation_home  # Formation équipe à domicile
+  formation_away = formations$formation_away  # Formation équipe à l'extérieur
+  compet = details$compet
+  Stade = details$Stade
+  T.away = details$T.away
+  T.home = details$T.home
+  result = details$result
+  spec = details$spec
+  liste_buteurs = but_stats$liste_buteurs  # Liste des buteurs
+  liste_passeurs = but_stats$liste_passeurs  # Liste des passeurs
+  liste_clubs = but_stats$liste_clubs  # Liste des clubs
+  # Appel de la fonction Resum.match()
+  resume = Resum.match(
+    compet = compet,
+    Stade = Stade,
+    T.away = T.away,
+    T.home = T.home,
+    result = result,
+    spec = spec,
+    formation_home = formation_home,
+    formation_away = formation_away,
+    liste_buteurs = liste_buteurs,
+    liste_passeurs = liste_passeurs,
+    liste_clubs = liste_clubs,
+    liste_minutes = but_minutes  # Passer les minutes des buts
+  )
+  
+  return(resume)
+}
+
+# Test de la fonction
+user_agent = user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:132.0) Gecko/20100101 Firefox/132.0")
+urlpage = "https://www.transfermarkt.fr/spielbericht/index/spielbericht/4437897"  # Remplacer par l'URL du match
+Fonction_Finale = Generation_de_resumes(urlpage, user_agent)
+cat(Fonction_Finale)
+```
+
