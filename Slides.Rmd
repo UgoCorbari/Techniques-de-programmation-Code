@@ -56,22 +56,26 @@ output:
 ## Principales données de l'encadré 1
 
 ```{r echo=TRUE}
-page <- read_html(clean_html)
-
-compet <- page %>% html_node(".direct-headline__header") %>%  html_text(trim = TRUE)            # Compétition
-
-T.home <- page %>% html_node(".sb-team.sb-heim .sb-vereinslink") %>% html_text(trim = TRUE)     # Equipe Domicile
-
-T.away <- page %>% html_node(".sb-team.sb-gast .sb-vereinslink") %>% html_text(trim = TRUE)     # Equipe Exterieur
-
-result <- page %>% html_node(".sb-endstand") %>%html_text(trim = TRUE)                          # Résultat
-
-spec <- page %>% html_node(".sb-zusatzinfos strong") %>% html_text(trim = TRUE)                 # Spectateurs
-
-date <- page %>% html_node(".sb-datum.hide-for-small") %>% html_text(trim = TRUE)               # Date du match
-
-Stade <- page %>% html_node(".sb-zusatzinfos a") %>% html_text(trim = TRUE)                     # Nom du stade
-
+Fextraire_details_match = function(page) {
+  compet <- page %>% html_node(".direct-headline__header") %>% html_text(trim = TRUE)
+  T.home <- page %>% html_node(".sb-team.sb-heim .sb-vereinslink") %>% html_text(trim = TRUE)
+  T.away <- page %>% html_node(".sb-team.sb-gast .sb-vereinslink") %>% html_text(trim = TRUE)
+  result <- page %>% html_node(".sb-endstand") %>% html_text(trim = TRUE)
+  spec <- page %>% html_node(".sb-zusatzinfos strong") %>% html_text(trim = TRUE)
+  date <- page %>% html_node(".sb-datum.hide-for-small") %>% html_text(trim = TRUE)
+  Stade <- page %>% html_node(".sb-zusatzinfos a") %>% html_text(trim = TRUE)
+  
+  details = list(
+    compet = compet, 
+    T.home = T.home, 
+    T.away = T.away, 
+    result = result, 
+    spectators = spec, 
+    match_date = date, 
+    stadium = Stade
+  )
+  return(details)
+}
 # Résumé de ces informations
 cat(sprintf("Compétition: %s\nMatch: %s %s %s\nSpectateurs: %s\nDate et heure: %s\nStade: %s\n",
             compet, T.home, result, T.away, spec, date, Stade))
@@ -247,21 +251,6 @@ print(statistiques_buts)
 -   **Création d'un résumé narratif du match.**
 
 ```{r echo=FALSE}
-# Création du résumé narratif du match
-
-# Vérifiez que les variables sont bien définis avant l'appel
-formations <- extraire_formation(page)
-formation_home <- formations$formation_home
-formation_away <- formations$formation_away
-formations <- extraire_formation(page)
-statistiques_buts <- extraire_buteurs(page, but_minutes)
-
-# Vérifier si les variables sont extraites correctement
-liste_buteurs <- statistiques_buts$Buteur
-liste_passeurs <- statistiques_buts$Passeur
-liste_minutes <- statistiques_buts$Minute
-liste_clubs <- statistiques_buts$Club
-# Création du résumé narratif du match
 Resum.match <- function(compet, Stade, T.away, T.home, result, spec, formation_home, formation_away, liste_buteurs, liste_passeurs, liste_clubs, liste_minutes) {
  resume = paste(
    "Dans le cadre de la compétition", compet, ", le match opposant", T.home, "à", T.away,
