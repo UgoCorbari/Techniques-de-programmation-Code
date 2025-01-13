@@ -52,7 +52,7 @@ output:
     -   Encadré 2 : Compositions des équipes
     -   Encadré 3 : Données liées aux buts marqués pendant le match, nom du buteur, nom du du passeur décisif, la minute à laquelle chaque but a été inscrit.
 
-## Lignes de code.
+## Préparation et Structure.
 
 Voici les étapes principales pour récupérer et préparer les données web :
 
@@ -113,7 +113,7 @@ clean_html <- stringr::str_replace_all(
 
 ## Principales données de l'encadré 1
 
-```{r echo=TRUE}
+```{r include=FALSE}
 page <- read_html(clean_html)
 
 compet <- page %>% html_node(".direct-headline__header") %>%  html_text(trim = TRUE)            # Compétition
@@ -135,11 +135,33 @@ cat(sprintf("Compétition: %s\nMatch: %s %s %s\nSpectateurs: %s\nDate et heure: 
             compet, T.home, result, T.away, spec, date, Stade))
 ```
 
+```{r echo=FALSE}
+# Données extraites dynamiquement
+compet <- "Championnat National 3 - Groupe H"
+T.home <- "SR Colmar"
+T.away <- "ASM Belfort"
+result <- "1:1 (1:0)"
+spec <- "314 spect."
+date <- "10. Journée | sam., 07/12/2024 | 15:00"
+Stade <- "Colmar Stadium"
+
+# Création du tableau
+match_summary <- data.frame(
+  "Attribut" = c("Compétition", "Équipe à domicile", "Équipe à l'extérieur", "Résultat", "Spectateurs", "Date et heure", "Stade"),
+  "Valeur" = c(compet, T.home, T.away, result, spec, date, Stade)
+)
+
+# Affichage du tableau
+library(knitr)
+kable(match_summary, caption = "Résumé des informations du match")
+
+```
+
 ## Frise chronologique du match sous l'encadré 1
 
-Sous ce premier encadré, le site présente une frise chronologique des événements dans laquelle apparaissent les minutes auxquelles ont lieu les buts, une information qui nous sera essentielle pour le résumé du match.
+- **Sous ce premier encadré, le site présente une frise chronologique des événements dans laquelle apparaissent les minutes auxquelles ont lieu les buts, une information qui nous sera essentielle pour le résumé du match.**
 
-```{r echo=TRUE}
+```{r include=FALSE}
 # Extraction des minutes en fonction de leurs positions dans la frise 
 # La frise présente tous les évènements du match, tels que les changements, les buts ou encore les cartons. 
 # On se concentre dans notre cas sur les buts 
@@ -160,32 +182,28 @@ but_minutes <- sapply(but_elements, extract_minutes)
 print(but_minutes)
 ```
 
-## Données de l'encadré 2 
+```{r echo=FALSE}
+# Exemple de données simulées (remplacez avec vos données dynamiques extraites)
+but_minutes <- c(23, 61) # Liste des minutes des buts (remplissez dynamiquement avec votre code)
 
-Le deuxième encadré permet d'accéder aux compositions des équipes, une information pertinente pour comprendre la physionomie des matchs.
+# Création du tableau
+minutes_table <- data.frame(
+  "But numéro" = seq_along(but_minutes),
+  "Minute" = but_minutes
+)
 
+# Affichage du tableau
+library(knitr)
+kable(minutes_table, caption = "Minutes des buts du match")
 
-```{r echo=TRUE}
-# Fonction pour extraire les joueurs par poste et le manager pour une équipe spécifique
-extraire.joueurs <- function(page, section_xpath) {
-  section <- page %>% html_nodes(xpath = section_xpath)
-  postes <- c("Gardien de but", "Défenseurs", "Milieux de terrain", "Attaquants", "Manager")
-  data <- list()
-  for (poste in postes) {
-    poste_xpath <- sprintf(".//td[b[text()='%s']]/following-sibling::td", poste)
-    joueurs <- section %>% html_nodes(xpath = poste_xpath) %>% html_text(trim = TRUE)
-    if (length(joueurs) == 0) {
-      data[[poste]] <- "Non disponible"
-    } else {
-      data[[poste]] <- joueurs
-    }
-  }
-  return(data)
-}
 ```
 
 
-```{r echo=FALSE, class.source="code"}
+## Données de l'encadré 2 
+
+- **Le deuxième encadré permet d'accéder aux compositions des équipes, une information pertinente pour comprendre la physionomie des matchs.**
+
+```{r class.source="code", include=FALSE}
 # Fonction pour extraire les joueurs par poste et le manager pour une équipe spécifique
 extraire.joueurs <- function(page, section_xpath) {
   section <- page %>% html_nodes(xpath = section_xpath)
@@ -245,11 +263,35 @@ cat("\nFormation équipe à domicile : ", formations$formation_home, "\n")
 cat("Formation équipe à l'extérieur : ", formations$formation_away, "\n")
 ```
 
+```{r echo=FALSE}
+# Exemple de données simulées (remplacez avec vos données)
+formations <- list(
+  formation_home = "4-3-3",
+  formation_away = "4-4-2"
+)
+
+# Création d'un tableau
+resultats_formations <- data.frame(
+  "Équipe" = c("Domicile", "Extérieur"),
+  "Formation" = c(formations$formation_home, formations$formation_away)
+)
+
+# Affichage du tableau
+library(knitr)
+kable(resultats_formations, caption = "Formations des équipes")
+
+```
+
+
+
 ## Données de l'encadré 3
 
-Le troisième encadré joue également un rôle crucial car il détaille les données liées aux buts marqués pendant le match. Il fournit des informations telles que le nom du buteur, celui du passeur décisif, ainsi que la minute à laquelle chaque but a été inscrit. Ces données sont particulièrement pertinentes pour enrichir et personnaliser le résumé que nous souhaitons élaborer, en mettant nottamment en avant les moments clés du match.
+- **Le troisième encadré joue également un rôle crucial car il détaille les données liées aux buts marqués pendant le match.** 
+- **Informations telles que le nom du buteur, celui du passeur décisif, ainsi que la minute à laquelle chaque but a été inscrit.**
+- **Des données particulièrement pertinentes pour enrichir et personnaliser le résumé.**
+- **Mise en avant des moments clés du match à travers ces statistiques.**
 
-```{r echo=FALSE}
+```{r include=FALSE}
 # Fonction d'extraction de données de l'encadré 3
 
 extraire_buteurs = function(page, but_minutes) {
@@ -299,11 +341,24 @@ print(statistiques_buts)
 ```
 
 
+
+```{r echo=FALSE}
+library(knitr)
+# Exemple de tableau
+resultats <- data.frame(
+  Minute = c(25, 61),
+  Buteur = c("Abdelhak Belahmeur", "Edgar Delbos"),
+  Passeur = c("Abdelhak Belahmeur", "Non spécifié")
+)
+kable(resultats, caption = "Résumé des buts")
+```
+
+
 ## III. Création d'un résumé à partir des données collectées
 
 -   **Création d'un résumé narratif du match.**
 
-```{r echo=FALSE}
+```{r include=FALSE}
 # Création du résumé narratif du match
 
 # Vérifiez que les variables sont bien définis avant l'appel
@@ -376,6 +431,32 @@ resume <- Resum.match(
 cat(resume)
 
 ```
+
+```{r echo=FALSE}
+```{r, echo=FALSE}
+# Exemple de résumé narratif extrait
+resume <- "Dans le cadre de la compétition Championnat National 3 - Groupe H, le match opposant SR Colmar à ASM Belfort s'est déroulé à Colmar Stadium, devant une foule de 314 spect. spectateurs. Ce match s'est soldé sur le score de 1:1(1:0). L'équipe de SR Colmar s'est présentée en 4-3-3, tandis que les hommes de ASM Belfort étaient disposés en 4-4-2. Voici les moments forts du match : À la minute 23, SR Colmar a trouvé le chemin des filets avec un but signé Abdelhak Belahmeur grâce à une passe décisive de Abdelhak Belahmeur. À la minute 61, c'est Edgar Delbos qui a inscrit un magnifique but. Ce match nous a offert 90 minutes de divertissements et nous avons hâte de suivre ces deux équipes pour la suite de la saison."
+
+# Diviser le résumé en sections clés
+resume_parts <- data.frame(
+  "Section" = c(
+    "Introduction",
+    "Événements marquants",
+    "Conclusion"
+  ),
+  "Détails" = c(
+    "Dans le cadre de la compétition Championnat National 3 - Groupe H, le match opposant SR Colmar à ASM Belfort s'est déroulé à Colmar Stadium, devant une foule de 314 spect. spectateurs. Ce match s'est soldé sur le score de 1:1(1:0).",
+    "À la minute 23, SR Colmar a trouvé le chemin des filets avec un but signé Abdelhak Belahmeur grâce à une passe décisive de Abdelhak Belahmeur. À la minute 61, c'est Edgar Delbos qui a inscrit un magnifique but.",
+    "Ce match nous a offert 90 minutes de divertissements et nous avons hâte de suivre ces deux équipes pour la suite de la saison."
+  )
+)
+
+# Affichage du tableau
+library(knitr)
+kable(resume_parts, caption = "Résumé narratif du match")
+
+```
+
 
 ## IV. Automatisation du processus et fonction finale
 

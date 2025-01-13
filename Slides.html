@@ -3286,7 +3286,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; }
 </ul></li>
 </ul>
 
-</article></slide><slide class=""><hgroup><h2>Lignes de code.</h2></hgroup><article  id="lignes-de-code." class="smaller ">
+</article></slide><slide class=""><hgroup><h2>Préparation et Structure.</h2></hgroup><article  id="préparation-et-structure." class="smaller ">
 
 <p>Voici les étapes principales pour récupérer et préparer les données web :</p>
 
@@ -3313,94 +3313,115 @@ clean_html &lt;- stringr::str_replace_all(
 
 </article></slide><slide class=""><hgroup><h2>Principales données de l’encadré 1</h2></hgroup><article  id="principales-données-de-lencadré-1" class="smaller ">
 
-<pre class = 'prettyprint lang-r'>page &lt;- read_html(clean_html)
-
-compet &lt;- page %&gt;% html_node(&quot;.direct-headline__header&quot;) %&gt;%  html_text(trim = TRUE)            # Compétition
-
-T.home &lt;- page %&gt;% html_node(&quot;.sb-team.sb-heim .sb-vereinslink&quot;) %&gt;% html_text(trim = TRUE)     # Equipe Domicile
-
-T.away &lt;- page %&gt;% html_node(&quot;.sb-team.sb-gast .sb-vereinslink&quot;) %&gt;% html_text(trim = TRUE)     # Equipe Exterieur
-
-result &lt;- page %&gt;% html_node(&quot;.sb-endstand&quot;) %&gt;%html_text(trim = TRUE)                          # Résultat
-
-spec &lt;- page %&gt;% html_node(&quot;.sb-zusatzinfos strong&quot;) %&gt;% html_text(trim = TRUE)                 # Spectateurs
-
-date &lt;- page %&gt;% html_node(&quot;.sb-datum.hide-for-small&quot;) %&gt;% html_text(trim = TRUE)               # Date du match
-
-Stade &lt;- page %&gt;% html_node(&quot;.sb-zusatzinfos a&quot;) %&gt;% html_text(trim = TRUE)                     # Nom du stade
-
-# Résumé de ces informations
-cat(sprintf(&quot;Compétition: %s\nMatch: %s %s %s\nSpectateurs: %s\nDate et heure: %s\nStade: %s\n&quot;,
-            compet, T.home, result, T.away, spec, date, Stade))</pre>
-
-<pre >## Compétition: Championnat National 3 - Groupe H
-## Match: SR Colmar 1:1(1:0) ASM Belfort
-## Spectateurs: 314 spect.
-## Date et heure: 10. Journée                                                                             | sam., 07/12/2024                                                      |  15:00
-## Stade: Colmar Stadium</pre>
+<table class = 'rmdtable'>
+<caption>Résumé des informations du match</caption>
+<col width="30.000000%" />
+<col width="70.000000%" />
+<tr class="header">
+<th align="left">Attribut</th>
+<th align="left">Valeur</th>
+</tr>
+<tr class="odd">
+<td align="left">Compétition</td>
+<td align="left">Championnat National 3 - Groupe H</td>
+</tr>
+<tr class="even">
+<td align="left">Équipe à domicile</td>
+<td align="left">SR Colmar</td>
+</tr>
+<tr class="odd">
+<td align="left">Équipe à l’extérieur</td>
+<td align="left">ASM Belfort</td>
+</tr>
+<tr class="even">
+<td align="left">Résultat</td>
+<td align="left">1:1 (1:0)</td>
+</tr>
+<tr class="odd">
+<td align="left">Spectateurs</td>
+<td align="left">314 spect.</td>
+</tr>
+<tr class="even">
+<td align="left">Date et heure</td>
+<td align="left">10. Journée | sam., 07/12/2024 | 15:00</td>
+</tr>
+<tr class="odd">
+<td align="left">Stade</td>
+<td align="left">Colmar Stadium</td>
+</tr>
+</table>
 
 </article></slide><slide class=""><hgroup><h2>Frise chronologique du match sous l’encadré 1</h2></hgroup><article  id="frise-chronologique-du-match-sous-lencadré-1" class="smaller ">
 
-<p>Sous ce premier encadré, le site présente une frise chronologique des événements dans laquelle apparaissent les minutes auxquelles ont lieu les buts, une information qui nous sera essentielle pour le résumé du match.</p>
+<ul>
+<li><strong>Sous ce premier encadré, le site présente une frise chronologique des événements dans laquelle apparaissent les minutes auxquelles ont lieu les buts, une information qui nous sera essentielle pour le résumé du match.</strong></li>
+</ul>
 
-<pre class = 'prettyprint lang-r'># Extraction des minutes en fonction de leurs positions dans la frise 
-# La frise présente tous les évènements du match, tels que les changements, les buts ou encore les cartons. 
-# On se concentre dans notre cas sur les buts 
-# Objectif : Filtrer uniquement les événements de buts
-but_elements &lt;- page %&gt;%
-  html_nodes(&quot;.sb-leiste-ereignis span.sb-sprite.sb-tor&quot;) %&gt;% html_nodes(xpath = &quot;..&quot;) %&gt;%html_attr(&quot;style&quot;)                                          
-# Les éléments de la frise sont définis en fonction de leurs positions, on convertit alors la position en minutes
-extract_minutes &lt;- function(style) {
-  if (grepl(&quot;left:&quot;, style)) {
-    percent &lt;- as.numeric(sub(&quot;.*left: ([0-9.]+)%;.*&quot;, &quot;\\1&quot;, style))
-    return(round((percent * 90) / 100, 0))  # Calcul de la minute en fonction du pourcentage
-  } else {
-    return(NA)
-  }
-}
-
-but_minutes &lt;- sapply(but_elements, extract_minutes)
-print(but_minutes)</pre>
-
-<pre >## left: 25.555555555556%; left: 67.777777777778%; 
-##                      23                      61</pre>
+<table class = 'rmdtable'>
+<caption>Minutes des buts du match</caption>
+<tr class="header">
+<th align="right">But.numéro</th>
+<th align="right">Minute</th>
+</tr>
+<tr class="odd">
+<td align="right">1</td>
+<td align="right">23</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">61</td>
+</tr>
+</table>
 
 </article></slide><slide class=""><hgroup><h2>Données de l’encadré 2</h2></hgroup><article  id="données-de-lencadré-2" class="smaller ">
 
-<p>Le deuxième encadré permet d’accéder aux compositions des équipes, une information pertinente pour comprendre la physionomie des matchs.</p>
+<ul>
+<li><strong>Le deuxième encadré permet d’accéder aux compositions des équipes, une information pertinente pour comprendre la physionomie des matchs.</strong></li>
+</ul>
 
-<pre class = 'prettyprint lang-r'># Fonction pour extraire les joueurs par poste et le manager pour une équipe spécifique
-extraire.joueurs &lt;- function(page, section_xpath) {
-  section &lt;- page %&gt;% html_nodes(xpath = section_xpath)
-  postes &lt;- c(&quot;Gardien de but&quot;, &quot;Défenseurs&quot;, &quot;Milieux de terrain&quot;, &quot;Attaquants&quot;, &quot;Manager&quot;)
-  data &lt;- list()
-  for (poste in postes) {
-    poste_xpath &lt;- sprintf(&quot;.//td[b[text()=&#39;%s&#39;]]/following-sibling::td&quot;, poste)
-    joueurs &lt;- section %&gt;% html_nodes(xpath = poste_xpath) %&gt;% html_text(trim = TRUE)
-    if (length(joueurs) == 0) {
-      data[[poste]] &lt;- &quot;Non disponible&quot;
-    } else {
-      data[[poste]] &lt;- joueurs
-    }
-  }
-  return(data)
-}</pre>
-
-<pre >## 
-## Formation équipe à domicile :  4-3-3</pre>
-
-<pre >## Formation équipe à l&#39;extérieur :  4-4-2</pre>
+<table class = 'rmdtable'>
+<caption>Formations des équipes</caption>
+<tr class="header">
+<th align="left">Équipe</th>
+<th align="left">Formation</th>
+</tr>
+<tr class="odd">
+<td align="left">Domicile</td>
+<td align="left">4-3-3</td>
+</tr>
+<tr class="even">
+<td align="left">Extérieur</td>
+<td align="left">4-4-2</td>
+</tr>
+</table>
 
 </article></slide><slide class=""><hgroup><h2>Données de l’encadré 3</h2></hgroup><article  id="données-de-lencadré-3" class="smaller ">
 
-<p>Le troisième encadré joue également un rôle crucial car il détaille les données liées aux buts marqués pendant le match. Il fournit des informations telles que le nom du buteur, celui du passeur décisif, ainsi que la minute à laquelle chaque but a été inscrit. Ces données sont particulièrement pertinentes pour enrichir et personnaliser le résumé que nous souhaitons élaborer, en mettant nottamment en avant les moments clés du match.</p>
+<ul>
+<li><strong>Le troisième encadré joue également un rôle crucial car il détaille les données liées aux buts marqués pendant le match.</strong></li>
+<li><strong>Informations telles que le nom du buteur, celui du passeur décisif, ainsi que la minute à laquelle chaque but a été inscrit.</strong></li>
+<li><strong>Des données particulièrement pertinentes pour enrichir et personnaliser le résumé.</strong></li>
+<li><strong>Mise en avant des moments clés du match à travers ces statistiques.</strong></li>
+</ul>
 
-<pre >##                         Minute             Buteur            Passeur
-## left: 25.555555555556%;     23 Abdelhak Belahmeur Abdelhak Belahmeur
-## left: 67.777777777778%;     61       Edgar Delbos       Non spécifié
-##                                                                                                                                                       Evenement
-## left: 25.555555555556%; Abdelhak Belahmeur, 5. But de la saison                                    Passe décisive: Edgar Delbos, 2. Passe décisive de la saison
-## left: 67.777777777778%;                                                                                             Lucas Schnepp, Penalty, 4. But de la saison</pre>
+<table class = 'rmdtable'>
+<caption>Résumé des buts</caption>
+<tr class="header">
+<th align="right">Minute</th>
+<th align="left">Buteur</th>
+<th align="left">Passeur</th>
+</tr>
+<tr class="odd">
+<td align="right">25</td>
+<td align="left">Abdelhak Belahmeur</td>
+<td align="left">Abdelhak Belahmeur</td>
+</tr>
+<tr class="even">
+<td align="right">61</td>
+<td align="left">Edgar Delbos</td>
+<td align="left">Non spécifié</td>
+</tr>
+</table>
 
 </article></slide><slide class=""><hgroup><h2>III. Création d’un résumé à partir des données collectées</h2></hgroup><article  id="iii.-création-dun-résumé-à-partir-des-données-collectées" class="smaller ">
 
@@ -3408,9 +3429,27 @@ extraire.joueurs &lt;- function(page, section_xpath) {
 <li><strong>Création d’un résumé narratif du match.</strong></li>
 </ul>
 
-<pre >## Dans le cadre de la compétition Championnat National 3 - Groupe H , le match opposant SR Colmar à ASM Belfort s&#39;est déroulé à Colmar Stadium , devant une foule de 314 spect. spectateurs. Ce match s&#39;est soldé sur le score de 1:1(1:0) . L&#39;équipe de SR Colmar s&#39;est présentée en 4-3-3 , tandis que les hommes de ASM Belfort étaient disposés en 4-4-2 . Voici les moments forts du match : À la minute 23  a trouvé le chemin des filets avec un but signé Abdelhak Belahmeur grâce à une passe décisive de Abdelhak Belahmeur .À la minute 61 , c&#39;est Edgar Delbos qui a inscrit un magnifique but.
-## 
-## Ce match nous à offert 90 minutes de divertissements et nous avons hâte de suivre ces deux équipes pour la suite de la saison.</pre>
+<table class = 'rmdtable'>
+<caption>Résumé narratif du match</caption>
+<col width="8.300395%" />
+<col width="91.699605%" />
+<tr class="header">
+<th align="left">Section</th>
+<th align="left">Détails</th>
+</tr>
+<tr class="odd">
+<td align="left">Introduction</td>
+<td align="left">Dans le cadre de la compétition Championnat National 3 - Groupe H, le match opposant SR Colmar à ASM Belfort s’est déroulé à Colmar Stadium, devant une foule de 314 spect. spectateurs. Ce match s’est soldé sur le score de 1:1(1:0).</td>
+</tr>
+<tr class="even">
+<td align="left">Événements marquants</td>
+<td align="left">À la minute 23, SR Colmar a trouvé le chemin des filets avec un but signé Abdelhak Belahmeur grâce à une passe décisive de Abdelhak Belahmeur. À la minute 61, c’est Edgar Delbos qui a inscrit un magnifique but.</td>
+</tr>
+<tr class="odd">
+<td align="left">Conclusion</td>
+<td align="left">Ce match nous a offert 90 minutes de divertissements et nous avons hâte de suivre ces deux équipes pour la suite de la saison.</td>
+</tr>
+</table>
 
 </article></slide><slide class=""><hgroup><h2>IV. Automatisation du processus et fonction finale</h2></hgroup><article  id="iv.-automatisation-du-processus-et-fonction-finale" class="smaller ">
 
@@ -3440,14 +3479,14 @@ extraire.joueurs &lt;- function(page, section_xpath) {
 
 <pre >## Formation équipe à l&#39;extérieur :  4-4-2</pre>
 
-<pre >##                         Minute             Buteur            Passeur
-## left: 25.555555555556%;     23 Abdelhak Belahmeur Abdelhak Belahmeur
-## left: 67.777777777778%;     61       Edgar Delbos       Non spécifié
-##                                                                                                                                                       Evenement
-## left: 25.555555555556%; Abdelhak Belahmeur, 5. But de la saison                                    Passe décisive: Edgar Delbos, 2. Passe décisive de la saison
-## left: 67.777777777778%;                                                                                             Lucas Schnepp, Penalty, 4. But de la saison</pre>
+<pre >##   Minute             Buteur            Passeur
+## 1     23 Abdelhak Belahmeur Abdelhak Belahmeur
+## 2     61       Edgar Delbos       Non spécifié
+##                                                                                                                                 Evenement
+## 1 Abdelhak Belahmeur, 5. But de la saison                                    Passe décisive: Edgar Delbos, 2. Passe décisive de la saison
+## 2                                                                                             Lucas Schnepp, Penalty, 4. But de la saison</pre>
 
-<pre >## Dans le cadre de la compétition Championnat National 3 - Groupe H , le match opposant SR Colmar à ASM Belfort s&#39;est déroulé à Colmar Stadium , devant une foule de 314 spect. spectateurs. Ce match s&#39;est soldé sur le score de 1:1(1:0) . L&#39;équipe de SR Colmar s&#39;est présentée en 4-3-3 , tandis que les hommes de ASM Belfort étaient disposés en 4-4-2 . Voici les moments forts du match : À la minute 23  a trouvé le chemin des filets avec un but signé Abdelhak Belahmeur grâce à une passe décisive de Abdelhak Belahmeur .À la minute 61 , c&#39;est Edgar Delbos qui a inscrit un magnifique but.
+<pre >## Dans le cadre de la compétition Championnat National 3 - Groupe H , le match opposant SR Colmar à ASM Belfort s&#39;est déroulé à Colmar Stadium , devant une foule de 314 spect. spectateurs. Ce match s&#39;est soldé sur le score de 1:1 (1:0) . L&#39;équipe de SR Colmar s&#39;est présentée en 4-3-3 , tandis que les hommes de ASM Belfort étaient disposés en 4-4-2 . Voici les moments forts du match : À la minute 23  a trouvé le chemin des filets avec un but signé Abdelhak Belahmeur grâce à une passe décisive de Abdelhak Belahmeur .À la minute 61 , c&#39;est Edgar Delbos qui a inscrit un magnifique but.
 ## 
 ## Ce match nous à offert 90 minutes de divertissements et nous avons hâte de suivre ces deux équipes pour la suite de la saison.</pre>
 
