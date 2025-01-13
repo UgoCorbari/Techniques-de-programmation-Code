@@ -3125,6 +3125,69 @@ span.underline{text-decoration: underline;}
 div.column{display: inline-block; vertical-align: top; width: 50%;}
 div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
 ul.task-list{list-style: none;}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
 </style>
 
 
@@ -3192,7 +3255,7 @@ ul.task-list{list-style: none;}
 <li><strong>Extraction et analyse des données :</strong>
 
 <ul>
-<li>Configureration d’un <strong>User-Agent</strong> pour accéder aux pages ciblées.</li>
+<li>Configuration d’un <strong>User-Agent</strong> pour accéder aux pages ciblées.</li>
 <li>Nettoyage et structuration descdonnées HTML.</li>
 <li>Identification des équipes, du score, des buteurs, et des moments clés.</li>
 </ul></li>
@@ -3222,6 +3285,53 @@ ul.task-list{list-style: none;}
 <li>Encadré 3 : Données liées aux buts marqués pendant le match, nom du buteur, nom du du passeur décisif, la minute à laquelle chaque but a été inscrit.</li>
 </ul></li>
 </ul>
+
+</article></slide><slide class=""><hgroup><h2>Lignes de code.</h2></hgroup><article  id="lignes-de-code." class="smaller ">
+
+<p>Voici les étapes principales pour récupérer et préparer les données web :</p>
+
+<pre class = 'prettyprint lang-r code'># Étape 1 : Détection du User-Agent
+user_agent &lt;- httr::user_agent(
+  &quot;Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:132.0) Gecko/20100101 Firefox/132.0&quot;
+)
+
+# Étape 2 : Définition de l&#39;URL de la page cible
+urlpage &lt;- &quot;https://www.transfermarkt.fr/spielbericht/index/spielbericht/4402015&quot;
+
+# Étape 3 : Requête HTTP pour récupérer la page web
+foot &lt;- httr::GET(urlpage, user_agent)
+
+# Étape 4 : Lecture et nettoyage du contenu HTML
+html &lt;- xml2::read_html(
+  httr::content(foot, &quot;text&quot;)
+)
+
+clean_html &lt;- stringr::str_replace_all(
+  as.character(html),
+  &quot;[\\t\\r\\n\\f]&quot;, &quot;&quot;
+)</pre>
+
+</article></slide><slide class=""><hgroup><h2>Principales données de l’encadré 1</h2></hgroup><article  id="principales-données-de-lencadré-1" class="smaller ">
+
+<pre class = 'prettyprint lang-r'>page &lt;- read_html(clean_html)
+
+compet &lt;- page %&gt;% html_node(&quot;.direct-headline__header&quot;) %&gt;%  html_text(trim = TRUE)            # Compétition
+
+T.home &lt;- page %&gt;% html_node(&quot;.sb-team.sb-heim .sb-vereinslink&quot;) %&gt;% html_text(trim = TRUE)     # Equipe Domicile
+
+T.away &lt;- page %&gt;% html_node(&quot;.sb-team.sb-gast .sb-vereinslink&quot;) %&gt;% html_text(trim = TRUE)     # Equipe Exterieur
+
+result &lt;- page %&gt;% html_node(&quot;.sb-endstand&quot;) %&gt;%html_text(trim = TRUE)                          # Résultat
+
+spec &lt;- page %&gt;% html_node(&quot;.sb-zusatzinfos strong&quot;) %&gt;% html_text(trim = TRUE)                 # Spectateurs
+
+date &lt;- page %&gt;% html_node(&quot;.sb-datum.hide-for-small&quot;) %&gt;% html_text(trim = TRUE)               # Date du match
+
+Stade &lt;- page %&gt;% html_node(&quot;.sb-zusatzinfos a&quot;) %&gt;% html_text(trim = TRUE)                     # Nom du stade
+
+# Résumé de ces informations
+cat(sprintf(&quot;Compétition: %s\nMatch: %s %s %s\nSpectateurs: %s\nDate et heure: %s\nStade: %s\n&quot;,
+            compet, T.home, result, T.away, spec, date, Stade))</pre>
 
 </article></slide><slide class=""><hgroup><h2>III. Création d’un résumé à partir des données collectées</h2></hgroup><article  id="iii.-création-dun-résumé-à-partir-des-données-collectées" class="smaller ">
 
