@@ -3221,7 +3221,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; }
 <li>Récupération et nettoyage des données depuis le site Transfermarkt.</li>
 <li>Analyse des données principales : équipes, score, spectateurs, date, stade, etc…</li>
 </ul></li>
-<li><strong>III. Création d’un résumé à partir des données collectées</strong>
+<li><strong>III. Création d’un résumé à partir des différentes données collectées</strong>
 
 <ul>
 <li>Structuration des données extraites.</li>
@@ -3333,20 +3333,102 @@ Stade &lt;- page %&gt;% html_node(&quot;.sb-zusatzinfos a&quot;) %&gt;% html_tex
 cat(sprintf(&quot;Compétition: %s\nMatch: %s %s %s\nSpectateurs: %s\nDate et heure: %s\nStade: %s\n&quot;,
             compet, T.home, result, T.away, spec, date, Stade))</pre>
 
+<pre >## Compétition: Championnat National 3 - Groupe H
+## Match: SR Colmar 1:1(1:0) ASM Belfort
+## Spectateurs: 314 spect.
+## Date et heure: 10. Journée                                                                             | sam., 07/12/2024                                                      |  15:00
+## Stade: Colmar Stadium</pre>
+
+</article></slide><slide class=""><hgroup><h2>Frise chronologique du match sous l’encadré 1</h2></hgroup><article  id="frise-chronologique-du-match-sous-lencadré-1" class="smaller ">
+
+<p>Sous ce premier encadré, le site présente une frise chronologique des événements dans laquelle apparaissent les minutes auxquelles ont lieu les buts, une information qui nous sera essentielle pour le résumé du match.</p>
+
+<pre >## left: 25.555555555556%; left: 67.777777777778%; 
+##                      23                      61</pre>
+
+</article></slide><slide class=""><hgroup><h2>Données de l’encadré 2</h2></hgroup><article  id="données-de-lencadré-2" class="smaller ">
+
+<p>Le deuxième encadré permet d’accéder aux compositions des équipes, une information pertinente pour comprendre la physionomie des matchs.</p>
+
+<pre >## 
+## Formation équipe à domicile :  4-3-3</pre>
+
+<pre >## Formation équipe à l&#39;extérieur :  4-4-2</pre>
+
+</article></slide><slide class=""><hgroup><h2>Données de l’encadré 3</h2></hgroup><article  id="données-de-lencadré-3" class="smaller ">
+
+<p>Le troisième encadré joue également un rôle crucial car il détaille les données liées aux buts marqués pendant le match. Il fournit des informations telles que le nom du buteur, celui du passeur décisif, ainsi que la minute à laquelle chaque but a été inscrit. Ces données sont particulièrement pertinentes pour enrichir et personnaliser le résumé que nous souhaitons élaborer, en mettant nottamment en avant les moments clés du match.</p>
+
+<pre >##                         Minute             Buteur            Passeur
+## left: 25.555555555556%;     23 Abdelhak Belahmeur Abdelhak Belahmeur
+## left: 67.777777777778%;     61       Edgar Delbos       Non spécifié
+##                                                                                                                                                       Evenement
+## left: 25.555555555556%; Abdelhak Belahmeur, 5. But de la saison                                    Passe décisive: Edgar Delbos, 2. Passe décisive de la saison
+## left: 67.777777777778%;                                                                                             Lucas Schnepp, Penalty, 4. But de la saison</pre>
+
 </article></slide><slide class=""><hgroup><h2>III. Création d’un résumé à partir des données collectées</h2></hgroup><article  id="iii.-création-dun-résumé-à-partir-des-données-collectées" class="smaller ">
 
 <ul>
 <li><strong>Création d’un résumé narratif du match.</strong></li>
 </ul>
 
+<pre >## Dans le cadre de la compétition Championnat National 3 - Groupe H , le match opposant SR Colmar à ASM Belfort s&#39;est déroulé à Colmar Stadium , devant une foule de 314 spect. spectateurs. Ce match s&#39;est soldé sur le score de 1:1(1:0) . L&#39;équipe de SR Colmar s&#39;est présentée en 4-3-3 , tandis que les hommes de ASM Belfort étaient disposés en 4-4-2 . Voici les moments forts du match : À la minute 23  a trouvé le chemin des filets avec un but signé Abdelhak Belahmeur grâce à une passe décisive de Abdelhak Belahmeur .À la minute 61 , c&#39;est Edgar Delbos qui a inscrit un magnifique but.
+## 
+## Ce match nous à offert 90 minutes de divertissements et nous avons hâte de suivre ces deux équipes pour la suite de la saison.</pre>
+
 </article></slide><slide class=""><hgroup><h2>IV. Automatisation du processus et fonction finale</h2></hgroup><article  id="iv.-automatisation-du-processus-et-fonction-finale" class="smaller ">
 
 <ul>
-<li><strong>Restructuration du code en une seule fonction afin d’automatiser le processus.</strong></li>
+<li><strong>Création des différentes fonctions.</strong>
+
+<ul>
+<li>Fonction de récupération/nettoyage de la page HTML</li>
+<li>Fonction d’extraction des principales données</li>
+<li>Fonction d’extraction des minutes auxquelless ont lieu les buts</li>
+<li>Fonction d’extraction des formations</li>
+<li>Fonction d’extraction des buteurs et passeurs</li>
+<li>Fonction de résumé de match</li>
+</ul></li>
+<li><strong>Restructuration du code en une seule fonction afin d’automatiser le processus.</strong>
+
+<ul>
+<li>Création de la fonction finale à l’aide des fonctions crées ci-dessus</li>
+</ul></li>
 <li><strong>Objectif final : Obtenir le résumé de n’importe quel match avec des statistiques complètes et pertinentes</strong></li>
 </ul>
 
+</article></slide><slide class=""><hgroup><h2>Fonction finale et résumé d’un autre match</h2></hgroup><article  id="fonction-finale-et-résumé-dun-autre-match" class="smaller ">
+
+<pre >## 
+## Formation équipe à domicile :  4-3-3</pre>
+
+<pre >## Formation équipe à l&#39;extérieur :  4-4-2</pre>
+
+<pre >##                         Minute             Buteur            Passeur
+## left: 25.555555555556%;     23 Abdelhak Belahmeur Abdelhak Belahmeur
+## left: 67.777777777778%;     61       Edgar Delbos       Non spécifié
+##                                                                                                                                                       Evenement
+## left: 25.555555555556%; Abdelhak Belahmeur, 5. But de la saison                                    Passe décisive: Edgar Delbos, 2. Passe décisive de la saison
+## left: 67.777777777778%;                                                                                             Lucas Schnepp, Penalty, 4. But de la saison</pre>
+
+<pre >## Dans le cadre de la compétition Championnat National 3 - Groupe H , le match opposant SR Colmar à ASM Belfort s&#39;est déroulé à Colmar Stadium , devant une foule de 314 spect. spectateurs. Ce match s&#39;est soldé sur le score de 1:1(1:0) . L&#39;équipe de SR Colmar s&#39;est présentée en 4-3-3 , tandis que les hommes de ASM Belfort étaient disposés en 4-4-2 . Voici les moments forts du match : À la minute 23  a trouvé le chemin des filets avec un but signé Abdelhak Belahmeur grâce à une passe décisive de Abdelhak Belahmeur .À la minute 61 , c&#39;est Edgar Delbos qui a inscrit un magnifique but.
+## 
+## Ce match nous à offert 90 minutes de divertissements et nous avons hâte de suivre ces deux équipes pour la suite de la saison.</pre>
+
+</article></slide><slide class=""><hgroup><h2>Fonction finale</h2></hgroup><article  id="fonction-finale" class="smaller ">
+
+<pre >## Dans le cadre de la compétition Championnat National 3 - Groupe H , le match opposant Racing Strasbourg B à Jura Dolois Football s&#39;est déroulé à Parc des Sports , devant une foule de 48 spect. spectateurs. Ce match s&#39;est soldé sur le score de 1:1(1:1) . L&#39;équipe de Racing Strasbourg B s&#39;est présentée en Racing Strasbourg B , tandis que les hommes de Jura Dolois Football étaient disposés en Jura Dolois Football . Au cours des 90 minutes, les deux équipes ont donné le meilleur d&#39;elles-mêmes, mais aucune d&#39;elles n&#39;a su se départager. Ce match se solde sur un score nul qui n&#39;arrange personne.
+## 
+## Ce match nous à offert 90 minutes de divertissements et nous avons hâte de suivre ces deux équipes pour la suite de la saison.</pre>
+
 </article></slide><slide class=""><hgroup><h2>V. Conclusion du projet</h2></hgroup><article  id="v.-conclusion-du-projet" class="smaller ">
+
+<ul>
+<li><strong>Application pratique des techniques de programmation, notamment le web scraping.</strong></li>
+<li><strong>Automatisation du traitement des données non structurées pour générer des résumés statistiques et narratifs.</strong></li>
+<li><strong>Résolution de défis liés aux spécificités des structures HTML des pages webs ciblée.</strong></li>
+<li><strong>Développement de compétences transférables pour des projets académiques et professionnels futurs</strong>.</li>
+</ul>
 
 </article></slide><slide class=""><hgroup><h2>Retour d’expérience et bilan personnel</h2></hgroup><article  id="retour-dexpérience-et-bilan-personnel" class="smaller "></article></slide>
 
