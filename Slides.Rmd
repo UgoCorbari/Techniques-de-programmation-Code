@@ -1,39 +1,72 @@
 ---
-title: "Techniques de Programmation"
+title: "Techniques de programmation : Résumés de matchs"
 author: "CORBARI UGO SCHNEIDER HUGO"
 date: "2025-01-14"
-output: ioslides_presentation
+output: 
+  ioslides_presentation:
+    widescreen: true
+    smaller: true
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
-```
+## Sommaire
 
-## Introduction 
+- **I. Introduction**
+  - Présentation du projet et objectifs.
+  
+- **II. Extraction des données pour un unique match**
+  - Récupération et nettoyage des données depuis le site Transfermarkt.
+  - Analyse des données principales : équipes, scores, spectateurs, stade.
+  
+- **III. Création d'un résumé à partir des données collectées**
+  - Structuration des données extraites.
+  - Génération d'un résumé narratif détaillé.
+  
+- **IV. Automatisation du processus et fonction finale**
+  - Assemblage des fonctions.
+  - Génération automatisée des résumés.
 
-Pour ce projet lié à l'Unité d'Enseignement "Techniques de programmation", nous avons décidé de développer un programme capable de générer des résumés de matchs de football en se basant sur les résultats disponibles sur le site "Transfermarkt".
 
-Ce projet s'inscrit dans le cadre de l'apprentissage des techniques de web scraping, une thématique du cours que nous avons trouvée particulièrement intéressante mais assez complexe, doù le fait que nous avons souhaité approfondir cette thématique. 
+## I. Introduction
 
-L'objectif principal est ainsi de récupérer les données d'un match spécifique depuis le site "Transfermarkt". Pour ce faire, nous commençons par configurer un user agent et nettoyer le fichier HTML extrait. Ensuite, nous extrayons des informations telles que les équipes, les scores, les buteurs, et d'autres événements clés du match. Une fois ces données collectées, nous mettons en place des formules permettant de structurer et résumer les principaux événements du match.
+### Présentation du projet
 
-Enfin, nous veillons à automatiser ce processus afin que notre programme puisse produire un résumé détaillé pour n'importe quel match de football disponible sur la plateforme. Ce projet nous a permis de consolider notre compréhension des techniques de web scraping tout en appliquant les concepts appris à travers le cours de manière concrète.
+- **Contexte :**
+  - Projet lié au cours "Techniques de programmation".
+  - Développement d’un programme générant des **résumés de matchs de football**.
+  - Utilisation des données du site _Transfermarkt_.
 
-## Extractions des données pour un match
+- **Objectif principal :**
+  - Automatiser la récupération, l’analyse, et la structuration des données pour produire un résumé narratif détaillé.
 
-- Bullet 1
-- Bullet 2
-- Bullet 3
+- **Extraction des données :**
+   - Configurer un **User-Agent** pour accéder aux pages.
+   - Nettoyer et structurer les données HTML.
 
-## Slide with R Output
+- **Analyse des données :**
+   - Identifier les équipes, scores, buteurs, et moments clés.
 
-```{r cars, echo = TRUE}
-summary(cars)
-```
+- **Génération du résumé :**
+   - Produire un résumé narratif automatique pour n’importe quel match.
 
-## Slide with Plot
+- **Automatisation :**
+   - Rendre le processus entièrement automatisé et réutilisable.
 
-```{r pressure}
-plot(pressure)
-```
+## II. Extraction des données pour un unique match
+
+- **Récupération des données d'un match de football depuis le site "Transfermarkt".**
+    - "Transfermarkt" est un site web allemand axé sur le football proposant des informations sur les résultats, les transferts ainsi que des statistiques.
+    - L'un des 25 sites allemands les plus visités et l'un des principaux sites sportifs.
+- **Structure de la page web ciblée.** 
+    - Plusieurs encadrés :
+    - Encadré 1 : Informations clées telles que la compétition dans laquelle se déroule le match, les équipes impliquées, les scores, le résultat final
+    - Encadré 2 : Compositions des équipes
+    - Encadré 3 : Données liées aux buts marqués pendant le match, nom du buteur, nom du du passeur décisif, la minute à laquelle chaque but a été inscrit.
+    
+## III. Création d'un résumé à partir des données collectées
+
+## IV. Automatisation du processus et fonction finale 
+
+## V. Conclusion du projet
+
+## Retour d'expérience et bilan personnel
 
