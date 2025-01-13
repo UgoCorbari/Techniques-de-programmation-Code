@@ -744,4 +744,9 @@ cat(Fonction_Finale)
 -   **Automatisation du traitement des données non structurées pour générer des résumés statistiques et narratifs.**
 -   **Résolution de défis liés aux spécificités des structures HTML des pages webs ciblée.**
 -   **Développement de compétences transférables pour des projets académiques et professionnels futurs**.
+-   **Des limites :**
+    - Changement de la structure des pages HTML
+    - Données manquantes ou imprécises
+    - Limites techniques, conceptuelles et naturelles
+    
 
