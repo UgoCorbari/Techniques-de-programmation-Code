@@ -6,7 +6,12 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(
+  echo = TRUE,          # Ne pas afficher le code
+  message = FALSE,       # Ne pas afficher les messages
+  warning = FALSE,       # Ne pas afficher les avertissements
+  error = FALSE          # Ne pas afficher les messages d'erreur
+)
 ```
 
 ## Description du projet
