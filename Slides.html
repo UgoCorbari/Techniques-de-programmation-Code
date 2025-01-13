@@ -3290,28 +3290,51 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; }
 
 <p>Voici les étapes principales pour récupérer et préparer les données web :</p>
 
-<pre class = 'prettyprint lang-r code'># Étape 1 : Détection du User-Agent
-user_agent &lt;- httr::user_agent(
-  &quot;Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:132.0) Gecko/20100101 Firefox/132.0&quot;
-)
-
-# Étape 2 : Définition de l&#39;URL de la page cible
-urlpage &lt;- &quot;https://www.transfermarkt.fr/spielbericht/index/spielbericht/4402015&quot;
-
-# Étape 3 : Requête HTTP pour récupérer la page web
-foot &lt;- httr::GET(urlpage, user_agent)
-
-# Étape 4 : Lecture et nettoyage du contenu HTML
-html &lt;- xml2::read_html(
-  httr::content(foot, &quot;text&quot;)
-)
-
-clean_html &lt;- stringr::str_replace_all(
-  as.character(html),
-  &quot;[\\t\\r\\n\\f]&quot;, &quot;&quot;
-)</pre>
+<table class = 'rmdtable'>
+<caption>Processus de récupération et nettoyage de la page web</caption>
+<col width="31.851852%" />
+<col width="68.148148%" />
+<tr class="header">
+<th align="left">Étape</th>
+<th align="left">Détails</th>
+</tr>
+<tr class="odd">
+<td align="left">1. Détection du User-Agent</td>
+<td align="left">Configuration d’un User-Agent avec Mozilla/5.0.</td>
+</tr>
+<tr class="even">
+<td align="left">2. Définition de l’URL de la page cible</td>
+<td align="left">Définition de l’URL : <a href='https://www.transfermarkt.fr/spielbericht/index/spielbericht/4402015' title=''>https://www.transfermarkt.fr/spielbericht/index/spielbericht/4402015</a>.</td>
+</tr>
+<tr class="odd">
+<td align="left">3. Requête HTTP pour récupérer la page web</td>
+<td align="left">Utilisation de la fonction httr::GET pour récupérer le contenu de la page cible.</td>
+</tr>
+<tr class="even">
+<td align="left">4. Lecture et nettoyage du contenu HTML</td>
+<td align="left">Nettoyage du HTML avec stringr::str_replace_all pour supprimer les caractères inutiles.</td>
+</tr>
+</table>
 
 </article></slide><slide class=""><hgroup><h2>Principales données de l’encadré 1</h2></hgroup><article  id="principales-données-de-lencadré-1" class="smaller ">
+
+<pre class = 'prettyprint lang-r'>page &lt;- read_html(clean_html)
+
+compet &lt;- page %&gt;% html_node(&quot;.direct-headline__header&quot;) %&gt;%  html_text(trim = TRUE)            # Compétition
+
+T.home &lt;- page %&gt;% html_node(&quot;.sb-team.sb-heim .sb-vereinslink&quot;) %&gt;% html_text(trim = TRUE)     # Equipe Domicile
+
+T.away &lt;- page %&gt;% html_node(&quot;.sb-team.sb-gast .sb-vereinslink&quot;) %&gt;% html_text(trim = TRUE)     # Equipe Exterieur
+
+result &lt;- page %&gt;% html_node(&quot;.sb-endstand&quot;) %&gt;%html_text(trim = TRUE)                          # Résultat
+
+spec &lt;- page %&gt;% html_node(&quot;.sb-zusatzinfos strong&quot;) %&gt;% html_text(trim = TRUE)                 # Spectateurs
+
+date &lt;- page %&gt;% html_node(&quot;.sb-datum.hide-for-small&quot;) %&gt;% html_text(trim = TRUE)               # Date du match
+
+Stade &lt;- page %&gt;% html_node(&quot;.sb-zusatzinfos a&quot;) %&gt;% html_text(trim = TRUE)                     # Nom du stade</pre>
+
+</article></slide><slide class=""><hgroup><h2>Principales données de l’encadré 1</h2></hgroup><article  id="principales-données-de-lencadré-1-1" class="smaller ">
 
 <table class = 'rmdtable'>
 <caption>Résumé des informations du match</caption>
@@ -3354,24 +3377,29 @@ clean_html &lt;- stringr::str_replace_all(
 </article></slide><slide class=""><hgroup><h2>Frise chronologique du match sous l’encadré 1</h2></hgroup><article  id="frise-chronologique-du-match-sous-lencadré-1" class="smaller ">
 
 <ul>
-<li><strong>Sous ce premier encadré, le site présente une frise chronologique des événements dans laquelle apparaissent les minutes auxquelles ont lieu les buts, une information qui nous sera essentielle pour le résumé du match.</strong></li>
+<li><strong>Création d’une fonction pour récupérer les minutes des buts.</strong></li>
 </ul>
 
-<table class = 'rmdtable'>
-<caption>Minutes des buts du match</caption>
-<tr class="header">
-<th align="right">But.numéro</th>
-<th align="right">Minute</th>
-</tr>
-<tr class="odd">
-<td align="right">1</td>
-<td align="right">23</td>
-</tr>
-<tr class="even">
-<td align="right">2</td>
-<td align="right">61</td>
-</tr>
-</table>
+<pre class = 'prettyprint lang-r'># Extraction des minutes en fonction de leurs positions dans la frise
+# La frise présente tous les évènements du match, tels que les changements, les buts ou encore les cartons. 
+#On se concentre dans notre cas sur les buts. 
+but_elements &lt;- page %&gt;%
+  html_nodes(&quot;.sb-leiste-ereignis span.sb-sprite.sb-tor&quot;) %&gt;% html_nodes(xpath = &quot;..&quot;) %&gt;%html_attr(&quot;style&quot;)                                          
+# Les éléments de la frise sont définis en fonction de leurs positions, on convertit alors la position en minutes
+extract_minutes &lt;- function(style) {
+  if (grepl(&quot;left:&quot;, style)) {
+    percent &lt;- as.numeric(sub(&quot;.*left: ([0-9.]+)%;.*&quot;, &quot;\\1&quot;, style))
+    return(round((percent * 90) / 100, 0))  # Calcul de la minute en fonction du pourcentage
+  } else {
+    return(NA)
+  }
+}
+
+but_minutes &lt;- sapply(but_elements, extract_minutes)
+print(but_minutes)</pre>
+
+<pre >## left: 25.555555555556%; left: 67.777777777778%; 
+##                      23                      61</pre>
 
 </article></slide><slide class=""><hgroup><h2>Données de l’encadré 2</h2></hgroup><article  id="données-de-lencadré-2" class="smaller ">
 
@@ -3472,25 +3500,53 @@ clean_html &lt;- stringr::str_replace_all(
 <li><strong>Objectif final : Obtenir le résumé de n’importe quel match avec des statistiques complètes et pertinentes</strong></li>
 </ul>
 
-</article></slide><slide class=""><hgroup><h2>Fonction finale et résumé d’un autre match</h2></hgroup><article  id="fonction-finale-et-résumé-dun-autre-match" class="smaller ">
-
-<pre >## 
-## Formation équipe à domicile :  4-3-3</pre>
-
-<pre >## Formation équipe à l&#39;extérieur :  4-4-2</pre>
-
-<pre >##   Minute             Buteur            Passeur
-## 1     23 Abdelhak Belahmeur Abdelhak Belahmeur
-## 2     61       Edgar Delbos       Non spécifié
-##                                                                                                                                 Evenement
-## 1 Abdelhak Belahmeur, 5. But de la saison                                    Passe décisive: Edgar Delbos, 2. Passe décisive de la saison
-## 2                                                                                             Lucas Schnepp, Penalty, 4. But de la saison</pre>
-
-<pre >## Dans le cadre de la compétition Championnat National 3 - Groupe H , le match opposant SR Colmar à ASM Belfort s&#39;est déroulé à Colmar Stadium , devant une foule de 314 spect. spectateurs. Ce match s&#39;est soldé sur le score de 1:1 (1:0) . L&#39;équipe de SR Colmar s&#39;est présentée en 4-3-3 , tandis que les hommes de ASM Belfort étaient disposés en 4-4-2 . Voici les moments forts du match : À la minute 23  a trouvé le chemin des filets avec un but signé Abdelhak Belahmeur grâce à une passe décisive de Abdelhak Belahmeur .À la minute 61 , c&#39;est Edgar Delbos qui a inscrit un magnifique but.
-## 
-## Ce match nous à offert 90 minutes de divertissements et nous avons hâte de suivre ces deux équipes pour la suite de la saison.</pre>
-
 </article></slide><slide class=""><hgroup><h2>Fonction finale</h2></hgroup><article  id="fonction-finale" class="smaller ">
+
+<pre class = 'prettyprint lang-r'># Fonction pour générer le résumé
+Generation_de_resumes &lt;- function(urlpage, user_agent) {
+  clean_html = Fget_page(urlpage, user_agent)
+  page = read_html(clean_html)
+  
+  details = Fextraire_details_match(page)
+  but_minutes = Fextract_minutes(page)
+  but_stats = Fextraire_buteurs(page, but_minutes)
+  formations = Fextraire_formation2(page)
+  
+  formation_home = formations$formation_home
+  formation_away = formations$formation_away
+  compet = details$compet
+  Stade = details$stadium
+  T.away = details$T.away
+  T.home = details$T.home
+  result = details$result
+  spec = details$spectators
+  liste_buteurs = but_stats$liste_buteurs
+  liste_passeurs = but_stats$liste_passeurs
+  liste_clubs = but_stats$liste_clubs
+
+  resume = FResum.match(
+    compet = compet,
+    Stade = Stade,
+    T.away = T.away,
+    T.home = T.home,
+    result = result,
+    spec = spec,
+    formation_home = formation_home,
+    formation_away = formation_away,
+    liste_buteurs = liste_buteurs,
+    liste_passeurs = liste_passeurs,
+    liste_clubs = liste_clubs,
+    liste_minutes = but_minutes
+  )
+  
+  return(resume)
+}
+
+# Test avec un autre lien
+user_agent = user_agent(&quot;Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:132.0) Gecko/20100101 Firefox/132.0&quot;)
+urlpage = &quot;https://www.transfermarkt.fr/spielbericht/index/spielbericht/4402014&quot;  # Nouveau match
+Fonction_Finale = Generation_de_resumes(urlpage, user_agent)
+cat(Fonction_Finale)</pre>
 
 <pre >## Dans le cadre de la compétition Championnat National 3 - Groupe H , le match opposant Racing Strasbourg B à Jura Dolois Football s&#39;est déroulé à Parc des Sports , devant une foule de 48 spect. spectateurs. Ce match s&#39;est soldé sur le score de 1:1(1:1) . L&#39;équipe de Racing Strasbourg B s&#39;est présentée en Racing Strasbourg B , tandis que les hommes de Jura Dolois Football étaient disposés en Jura Dolois Football . Au cours des 90 minutes, les deux équipes ont donné le meilleur d&#39;elles-mêmes, mais aucune d&#39;elles n&#39;a su se départager. Ce match se solde sur un score nul qui n&#39;arrange personne.
 ## 

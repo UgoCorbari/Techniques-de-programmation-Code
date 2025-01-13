@@ -86,28 +86,47 @@ substr(as.character(html), 1, 2000)
 clean_html = str_replace_all(as.character(html),'[\\t\\r\\n\\f]','')
 ```
 
-```{r echo=TRUE, class.source="code"}
-
-# Étape 1 : Détection du User-Agent
-user_agent <- httr::user_agent(
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:132.0) Gecko/20100101 Firefox/132.0"
+```{r echo=FALSE}
+# Création d'un tableau décrivant les étapes du processus
+steps_table <- data.frame(
+  "Étape" = c(
+    "1. Détection du User-Agent",
+    "2. Définition de l'URL de la page cible",
+    "3. Requête HTTP pour récupérer la page web",
+    "4. Lecture et nettoyage du contenu HTML"
+  ),
+  "Détails" = c(
+    "Configuration d'un User-Agent avec Mozilla/5.0.",
+    "Définition de l'URL : https://www.transfermarkt.fr/spielbericht/index/spielbericht/4402015.",
+    "Utilisation de la fonction httr::GET pour récupérer le contenu de la page cible.",
+    "Nettoyage du HTML avec stringr::str_replace_all pour supprimer les caractères inutiles."
+  )
 )
 
-# Étape 2 : Définition de l'URL de la page cible
-urlpage <- "https://www.transfermarkt.fr/spielbericht/index/spielbericht/4402015"
+# Affichage du tableau
+library(knitr)
+kable(steps_table, caption = "Processus de récupération et nettoyage de la page web")
 
-# Étape 3 : Requête HTTP pour récupérer la page web
-foot <- httr::GET(urlpage, user_agent)
+```
 
-# Étape 4 : Lecture et nettoyage du contenu HTML
-html <- xml2::read_html(
-  httr::content(foot, "text")
-)
+## Principales données de l'encadré 1
 
-clean_html <- stringr::str_replace_all(
-  as.character(html),
-  "[\\t\\r\\n\\f]", ""
-)
+```{r echo=TRUE}
+page <- read_html(clean_html)
+
+compet <- page %>% html_node(".direct-headline__header") %>%  html_text(trim = TRUE)            # Compétition
+
+T.home <- page %>% html_node(".sb-team.sb-heim .sb-vereinslink") %>% html_text(trim = TRUE)     # Equipe Domicile
+
+T.away <- page %>% html_node(".sb-team.sb-gast .sb-vereinslink") %>% html_text(trim = TRUE)     # Equipe Exterieur
+
+result <- page %>% html_node(".sb-endstand") %>%html_text(trim = TRUE)                          # Résultat
+
+spec <- page %>% html_node(".sb-zusatzinfos strong") %>% html_text(trim = TRUE)                 # Spectateurs
+
+date <- page %>% html_node(".sb-datum.hide-for-small") %>% html_text(trim = TRUE)               # Date du match
+
+Stade <- page %>% html_node(".sb-zusatzinfos a") %>% html_text(trim = TRUE)                     # Nom du stade
 
 ```
 
@@ -130,9 +149,6 @@ date <- page %>% html_node(".sb-datum.hide-for-small") %>% html_text(trim = TRUE
 
 Stade <- page %>% html_node(".sb-zusatzinfos a") %>% html_text(trim = TRUE)                     # Nom du stade
 
-# Résumé de ces informations
-cat(sprintf("Compétition: %s\nMatch: %s %s %s\nSpectateurs: %s\nDate et heure: %s\nStade: %s\n",
-            compet, T.home, result, T.away, spec, date, Stade))
 ```
 
 ```{r echo=FALSE}
@@ -159,13 +175,12 @@ kable(match_summary, caption = "Résumé des informations du match")
 
 ## Frise chronologique du match sous l'encadré 1
 
-- **Sous ce premier encadré, le site présente une frise chronologique des événements dans laquelle apparaissent les minutes auxquelles ont lieu les buts, une information qui nous sera essentielle pour le résumé du match.**
+- **Création d'une fonction pour récupérer les minutes des buts.**
 
-```{r include=FALSE}
-# Extraction des minutes en fonction de leurs positions dans la frise 
+```{r}
+# Extraction des minutes en fonction de leurs positions dans la frise
 # La frise présente tous les évènements du match, tels que les changements, les buts ou encore les cartons. 
-# On se concentre dans notre cas sur les buts 
-# Objectif : Filtrer uniquement les événements de buts
+#On se concentre dans notre cas sur les buts. 
 but_elements <- page %>%
   html_nodes(".sb-leiste-ereignis span.sb-sprite.sb-tor") %>% html_nodes(xpath = "..") %>%html_attr("style")                                          
 # Les éléments de la frise sont définis en fonction de leurs positions, on convertit alors la position en minutes
@@ -181,23 +196,6 @@ extract_minutes <- function(style) {
 but_minutes <- sapply(but_elements, extract_minutes)
 print(but_minutes)
 ```
-
-```{r echo=FALSE}
-# Exemple de données simulées (remplacez avec vos données dynamiques extraites)
-but_minutes <- c(23, 61) # Liste des minutes des buts (remplissez dynamiquement avec votre code)
-
-# Création du tableau
-minutes_table <- data.frame(
-  "But numéro" = seq_along(but_minutes),
-  "Minute" = but_minutes
-)
-
-# Affichage du tableau
-library(knitr)
-kable(minutes_table, caption = "Minutes des buts du match")
-
-```
-
 
 ## Données de l'encadré 2 
 
@@ -433,7 +431,6 @@ cat(resume)
 ```
 
 ```{r echo=FALSE}
-```{r, echo=FALSE}
 # Exemple de résumé narratif extrait
 resume <- "Dans le cadre de la compétition Championnat National 3 - Groupe H, le match opposant SR Colmar à ASM Belfort s'est déroulé à Colmar Stadium, devant une foule de 314 spect. spectateurs. Ce match s'est soldé sur le score de 1:1(1:0). L'équipe de SR Colmar s'est présentée en 4-3-3, tandis que les hommes de ASM Belfort étaient disposés en 4-4-2. Voici les moments forts du match : À la minute 23, SR Colmar a trouvé le chemin des filets avec un but signé Abdelhak Belahmeur grâce à une passe décisive de Abdelhak Belahmeur. À la minute 61, c'est Edgar Delbos qui a inscrit un magnifique but. Ce match nous a offert 90 minutes de divertissements et nous avons hâte de suivre ces deux équipes pour la suite de la saison."
 
@@ -471,9 +468,9 @@ kable(resume_parts, caption = "Résumé narratif du match")
     -   Création de la fonction finale à l'aide des fonctions crées ci-dessus
 -   **Objectif final : Obtenir le résumé de n'importe quel match avec des statistiques complètes et pertinentes**
 
-## Fonction finale et résumé d'un autre match
+## Fonction finale
 
-```{r echo=FALSE}
+```{r include=FALSE}
 # 1)  Fonction de récupération/nettoyage de la page HTML
 
 Fget_page = function(urlpage, user_agent) {
@@ -705,9 +702,7 @@ resume <- Resum.match(
 cat(resume)
 ```
 
-## Fonction finale
-
-```{r echo=FALSE}
+```{r echo=TRUE}
 # Fonction pour générer le résumé
 Generation_de_resumes <- function(urlpage, user_agent) {
   clean_html = Fget_page(urlpage, user_agent)
