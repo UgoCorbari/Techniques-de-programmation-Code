@@ -729,9 +729,9 @@ Generation_de_resumes <- function(urlpage, user_agent) {
 }
 ```
 
-# Test avec un autre lien pour obtenir le résumé d'un autre match
+## Test avec un autre lien pour obtenir le résumé d'un autre match
 
-```{r}
+```{r echo=FALSE}
 user_agent = user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:132.0) Gecko/20100101 Firefox/132.0")
 urlpage = "https://www.transfermarkt.fr/spielbericht/index/spielbericht/4402014"  # Nouveau match
 Fonction_Finale = Generation_de_resumes(urlpage, user_agent)
@@ -745,4 +745,3 @@ cat(Fonction_Finale)
 -   **Résolution de défis liés aux spécificités des structures HTML des pages webs ciblée.**
 -   **Développement de compétences transférables pour des projets académiques et professionnels futurs**.
 
-## Retour d'expérience et bilan personnel
